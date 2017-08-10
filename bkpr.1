@@ -1,0 +1,641 @@
+.\"bkpr.1
+.Dd August 7, 2016
+.Dt bkpr.1
+.Os
+.Sh NAME
+.Nm bkpr
+.Nd bhyve virtual machine manager in Perl
+.\" SYNOPSIS
+.Sh SYNOPSIS
+.Nm 
+.Op Fl ndN Fl f Ar file
+.Ar operation
+.Op ...
+.\" DESCRIPTION
+.Sh DESCRIPTION
+.Nm
+commands are composed of:
+.Bl -bullet
+.It
+An optional set of global option flags that are always available:
+.Bl -tag -offset indent -compact -width fourfourfour
+.It Fl d
+Enable debugging output
+.It Fl N
+No-operation (dry run) mode
+.It Fl f Ar file
+Explicit configuration file
+.El
+.It 
+An operation keyword:
+.Bl -tag -offset indent -compact -width fourfourfour
+.It Ar help
+Print usage message
+.It Ar info
+Dump program configuration
+.It Ar init
+Run the initialization routine
+.It Ar list
+List guest virtual machines
+.It Ar create
+Create a guest virtual machine
+.It Ar destroy
+Destroy a guest virtual machine
+.It Ar update
+Change configuration of a guest virtual machine
+.It Ar start
+Boot a guest virtual machine
+.El
+.It
+Arbitrary additional options specific to the operation requested,
+documented in within that operation's section.
+.El
+.Pp
+Unless explicitly documented as such, the following flags are generally assumed to
+take the same meaning in all operations:
+.Bl -tag -compact -offset indent -width fourfourfourfour
+.It Fl i Ar num
+guest machine index number
+.It Fl n Ar name
+guest machine name
+.It Fl c Ar num
+guest cpu count
+.It Fl m Ar num
+guest memory size in MB
+.It Fl o Ar keyword
+guest operating system type
+.It Fl l Ar keyword
+bhyve loader to use
+.It Fl M Ar path
+path to grub device.map file
+.It Fl G Ar path
+path to grub command file
+.It Fl r Ar diskspec
+guest root storage device
+.It Fl d Ar diskspec
+guest additional storage device
+.It Fl N Ar netspec
+guest network interface name
+.It Fl D Ar text
+guest description text
+.El
+.\" FORMATS
+.Sh FORMATS
+Several arguments to operations are specified in a particular format. This
+section describes those formats.
+.\" OS KEYWORD
+.Ss OS KEYWORD
+The operating system name supplied for a guest is specified as one of the
+following strings:
+.Pp
+.Bl -tag -compact -offset indent
+.It Ar freebsd
+.Fx
+.It Ar openbsd
+.Ox
+.It Ar netbsd
+.Nx
+.It Ar linux
+Linux
+.It Ar sun
+Solaris/illumos
+.It Ar windows
+Microsoft Windows
+.El
+.\" LOADER KEYWORD
+.Ss LOADER KEYWORD
+The loader
+.Nm
+uses to boot the guest is specified using one of the following strings:
+.Pp
+.Bl -tag -compact -offset indent
+.It Ar bhyveload
+bhyveload
+.It Ar grub
+grub-bhyve
+.It Ar uefi
+UEFI
+.El
+.\" DISK SPEC
+.Ss DISK SPEC
+Disks are be specified using an expressive format that consists of several
+parts separated by double-colons:
+.Pp
+.Bl -tag -compact -offset indent
+.It Ar type
+the type of disk device
+.It Ar path
+filesystem path to the disk, with special keywords
+.It Ar size
+size of the disk in GB, if using
+.Ar autocreate
+.El
+.Pp
+Currently, the following disk types are supported:
+.Pp
+.Bl -tag -compact -offset indent
+.It Ar file
+raw disk file, typically created with
+.Xr truncate 1
+.It Ar zvol
+zfs volume
+.El
+.Pp
+For instance, a 10GB disk image file may be specified as:
+.Bd -literal -offset indent
+file::/bkpr/foo.img::10
+.Ed
+.Pp
+Or a 16GB zfs volume under the pool tank:
+.Bd -literal -offset indent
+zvol::tank/bkpr/foo::16
+.Ed
+.Pp
+Certain keywords in the disk path allow shorthanding common path
+idioms. These keywords allways occupy the first component of a path,
+and do not begin with a slash. For file-based disks, this imposes no
+limitations, however for zfs volumes, this will cause problems if the
+pool name is one of the keywords.
+.Pp
+Any path that begins with a slash is taken to be a literal absolute path
+and is used directly as-is.
+.Pp
+The two keywords are
+.Ar auto
+and
+.Ar prefix .
+If the path consists only of the keyword
+.Ar auto ,
+then the path is completely autodetermined. Otherwise, special processing
+is performed in conjuction with supplied path information. The
+.Ar prefix
+keyword utilizes the configuration file keys
+.Ar prefix
+and
+.Ar zprefix ,
+depending on the type of disk specified.
+.Pp
+Supposing a guest by the name of foo, with a
+.Ar prefix
+of /bkpr and a
+.Ar zprefix
+of tank/bkpr:
+.Bd -literal -offset indent
+file::auto             -->  /bkpr/foo/root
+file::auto/disk.img    -->  /bkpr/foo/disk.img
+file::prefix/disk.img  -->  /bkpr/disk.img
+
+zvol::auto             -->  /dev/zvol/tank/bkpr/foo/root
+zvol::auto/bar         -->  /dev/zvol/tank/bkpr/foo/bar
+zvol::prefix/bar       -->  /dev/zvol/tank/bkpr/bar
+zvol::tank/bar         -->  /dev/zvol/tank/bar
+.Ed
+.Pp
+Sizes only need to be specified if using the
+.Ar autocreate
+option, or force mode has been enabled in the operation. If using
+.Ar autocreate ,
+and the disk does not yet exist, then a size must be specified. If the
+disk already exists, then a size is not required. Essentially, a size
+must only be specified in cases where the disk is going to be created.
+.Pp
+Disk sizes are assumed to be in GB, however a suffix can be added to the
+size. What suffixes are legal is relative to the utility that this size is
+passed to when creating the resource. For file-based disks this is the
+.Xr truncate 1
+utility, for zfs volumes, this is
+.Xr zfs 8
+create 
+.Fl V .
+.\" NET SPEC
+.Ss NET SPEC
+Network interfaces are described using either the keyword
+.Ar auto ,
+or a double-colon delimited pair of 
+.Xr bridge 4
+and
+.Xr tap 4
+device id numbers.
+.Pp
+If the bridge is not specified, then the configuration file value
+.Ar bridge
+is used. If the tap is not specified or occupied by the
+.Ar auto
+keyword, then one will be autoselected by determining the next
+lowest unused index.
+.Pp
+.Bd -literal -offset indent
+auto       -->  bridge0, tapN
+5          -->  bridge0, tap5
+1::auto    -->  bridge1, tapN
+1::        -->  bridge1, tapN
+1::5       -->  bridge1, tap5
+.Ed
+.\" INIT
+.Sh INIT
+.Nm
+.Fl f Ar file
+.Ar init
+.Pp
+The 
+.Ar init
+operation performs the necessary setup for running
+.Nm .
+This must be run at least once prior to use, and can be
+run multiple times without issue. A number of setup steps
+are taken:
+.Bl -bullet
+.It
+The database connection is instantiated, and the schema is created.
+.It
+The
+.Ar prefix
+directory is checked for existence, and a test directory is
+created under the prefix and then removed:
+.Bd -literal
+$ mkdir $prefix/bkpr_init_test
+$ rmdir $prefix/bkpr_init_test
+.Ed
+.It
+If
+.Ar usezfs
+is enabled, then the
+.Ar zprefix
+is tested for existence, and the
+.Xr zfs 1
+functionality is tested;
+.Bd -literal
+$ zfs create -V 128M $zprefix/bkpr_init_test
+$ zfs snapshot $zprefix/bkpr_init_test@foo
+$ zfs clone $zprefix/bkpr_init_test@foo $zprefix/bkpr_init_test_clone
+$ zfs destroy $zprefix/bkpr_init_test_clone
+$ zfs destroy $zprefix/bkpr_init_test@foo
+$ zfs destroy $zprefix/bkpr_init_test
+.Ed
+.El
+.Pp
+Be aware that a
+failure in a part of this process may leave junk laying around. For instance
+if we have permission to create the volume but not to destroy it,
+.Nm
+will be unable to clean that up. In this case
+you will need to remove it manually, request someone with appropriate
+permissions remove it, or correct the permissions available to the account
+running
+.Nm .
+.Pp
+If a dataset named
+.Ar bkpr_init_test
+or
+.Ar bkpr_init_test_clone
+already exists, then
+.Nm
+will assume a failure to create the dataset and abort.
+.Pp
+Note: If your account has the ability to create, destroy, and snapshot filesystem
+datasets, but not volumes, you may need to acquire the
+.Ar refreservation
+permission.
+.\" LIST
+.Sh LIST
+.Nm
+list
+.Oo
+.Op Fl i Ar index Ns | Ns Fl n Ar name
+|
+.Op Fl w Ar \&"key\ *\ value\&"
+.Oc
+.Op Fl t Ar format
+.Pp
+The
+.Ar list
+operation prints guest configurations to standard output. The format of
+the output depends on the
+.Ar format
+arguement to the
+.Fl t
+flag. In the absence of this flag, the value specified in the configuration
+file using the
+.Ar listformat
+key is used. The following formats are supported:
+.sp
+.Bl -tag -compact -offset indent
+.It Ar csv
+comma-separated values, machine readable
+.It Ar col
+columnar, may be very wide
+.It Ar scol
+shortened columnar, under 80 characters
+.It Ar list
+List format, with all fields each on one line
+.El
+.Pp
+All guests are printed by default. If
+.Fl i
+or
+.Fl n
+is given, then a single guest is printed by that
+.Ar index
+or
+.Ar name .
+.Pp
+The
+.Fl x
+flag allows specifying a
+.Ar key ,
+which is a one of the valid guest configuration fields, and returns
+a list of guests where that field is matched by
+.Ar value ,
+as determined by operation
+.Ar * .
+The
+.Ar key
+and
+.Ar value
+must be separated from the
+.Ar *
+operator by a whitespace, so quoting is necessary on the shell.
+Operators are implemented by the SQL backend, so performing the
+.Ar >
+operation on a string field such as
+.Ar name ,
+for instance, may yield unexpected results.
+.Pp
+Multiple instances of the
+.Fl w
+flag are supported, and will be applied in order as ANDs,
+as implemented by the SQL backend.
+.Pp
+The current valid operations are:
+.sp
+.Bl -tag -compact -offset indent
+.It =
+value of
+.Ar key
+is equal to
+.Ar value
+.It !
+value of
+.Ar key
+is not equal to
+.Ar value
+.It >
+value of
+.Ar key
+is greater than
+.Ar value
+.It <
+value of
+.Ar key
+is less than
+.Ar value
+.It %
+value of
+.Ar key
+contains the substring
+.Ar value
+.It #
+value of
+.Ar key
+does not contain the substring
+.Ar value
+.El
+.Pp
+The current valid guest fields are:
+.sp
+.Bl -tag -compact -offset indent -width 123412341234
+.It name
+.Fl w Qq name % jim
+.It cpu
+.Fl w Qq cpu > 2
+.It mem
+.Fl w Qq mem < 4096
+.It os
+.Fl w Qq os = freebsd
+.It loader
+.Fl w Qq loader = uefi
+.It root
+.Fl w Qq root % tank
+.It disk
+.Fl w Qq disk = tank/vol/foo
+.\".It net
+.\".Fl w Qq net = tap8
+.El
+.Pp
+For example, to find all of Jim's guests configured for
+more than 2048MB of memory:
+.Bd -literal
+    bkpr list -w "name % jim" -w "mem > 2048"
+
+.Ed
+Which equates to the SQL:
+.Bd -literal
+    SELECT ... WHERE name LIKE '%jim%' AND mem > 2048;
+.Ed
+.Pp
+A minor effort is made to protect against erroneous or
+malicious behavior in this feature, however the SQL
+clause build using the
+.Fl w
+feature is mainly processed as-is. Use caution.
+.\" CREATE
+.Sh CREATE
+.Nm
+create
+.Fl n Ar name Fl r Ar diskspec
+.D1 Op Fl i Ar index
+.Bd -offset indent -compact
+.Op Fl c Ar num
+.Op Fl m Ar num
+.Ed
+.D1 Op Fl o Ar keyword
+.Bd -offset indent -compact
+.Oo
+.Fl l Ar keyword
+.Op Fl M Ar path
+.Op Fl G Ar path
+.Oc
+.Ed
+.Bd -offset indent -compact
+.Oo
+.Fl d Ar diskspec
+.Op Fl d Ar diskspec
+.Op ...
+.Oc
+.Ed
+.Bd -offset indent -compact
+.Oo
+.Fl N Ar netspec
+.Op Fl N Ar netspec
+.Op ...
+.Oc
+.Ed
+.D1 Op Fl D Ar description
+.D1 Op Fl f | Fl F
+.Pp
+The
+.Ar create
+operation will create a new guest configuration entry in the
+.Nm
+database.
+.Pp
+The
+.Fl n Ar name
+and
+.Fl r Ar diskspec
+arguments are required. All other arguments are optional, and in their
+absence values that must be present in any guest configuration will be
+populated with defaults. The defaults assume a
+.Fx
+guest, and will only provision reasonably small resources for the guest.
+.Pp
+See the descriptions for the
+.Ar diskspec
+and
+.Ar netspec
+formats above.
+.Pp
+The
+.Fl i
+flag allows setting a specific index for the guest, which must not be already
+in use. If this flag is not provided, an index value will be automatically
+determined by selecting the next lowest available index value.
+.\" DESTROY
+.Sh DESTROY
+.Nm
+destroy
+.Bro
+.Fl i Ar index | Fl n Ar name
+.Brc
+.Oo
+.Fl f | Fl F
+.Oc
+.Pp
+The
+.Ar destroy
+operation will remove the guest configuration from the
+.Nm
+database.
+.Pp
+The
+.Fl f
+and
+.Fl F
+options are mutually exclusive, and control whether any resources
+related to the guest, such as disks and files, are destroyed. The
+.Fl F
+flag specifies that resources should not be destroyed, while the
+.Fl f
+flag specifies that they should be destroyed.
+.Pp
+When neither is specified, the configuration file key
+.Ar autocreate
+controls the default behavior, where a value of 1 indicates that
+resources should be destroyed while a value of 0 indicates that they
+should not be destroyed.
+.\" UPDATE
+.Sh UPDATE
+.Nm
+update
+.Op ...
+.\" START
+.Sh START
+.Nm
+start
+.Bro
+.Fl i Ar index | Fl n Ar name
+.Brc
+.\" cpu/mem/etc
+.Bd -offset indent -compact
+.Op Fl c Ar num
+.Op Fl m Ar num
+.Ed
+.\" installation disc
+.D1 Op Fl I Ar path
+.\" grub loader
+.Bd -offset indent -compact
+.Oo
+.Fl l
+grub
+.Op Fl M Ar path
+.Op Fl G Ar path
+.Oc
+.Ed
+.\" UEFI loader
+.Bd -offset indent -compact
+.Oo
+.Fl l
+uefi
+.Oo
+.Fl U
+std|csm
+.Oc
+.Op Fl V Ar string
+.Oc
+.Ed
+.\" console
+.D1 Op Fl C Ar device
+.\" additional disks
+.Bd -offset indent -compact
+.Oo
+.Fl d Ar path
+.Op Fl d Ar path
+.Op ...
+.Oc
+.Ed
+.\" additional nics
+.Bd -offset indent -compact
+.Oo
+.Fl N Ar device
+.Op Fl N Ar device
+.Op ...
+.Oc
+.Ed
+.D1 Op Fl B Ar string
+.\" notes
+.Pp
+The
+.Ar start
+operation launches a guest that was previously created. Most guest
+configuration items can be overridden on the command line, which will
+not affect the stored configuration.
+.Pp
+The majority of the flags supported by the
+.Ar start
+operation are the standard flags shown above. However, there are some
+flags only used by this operation.
+.Pp
+The
+.Fl U
+flag allows specifying which UEFI image to use. The recognized
+arguments are 'std', which is the default, or 'csm'.
+.Pp
+The
+.Fl V
+flag enables VNC output with UEFI. If provided an argument, this is
+expected to be a full VNC definition. If not provided an argument, the
+default definition is used:
+.Bd -offset indent -literal
+tcp=127.0.0.1:5900,w=800,h=600,wait
+.Ed
+.Pp
+The
+.Fl C
+flag specifies a console device to use. The default is 'stdio', so this flag
+is typically used to specify an
+.Xr nmdm 4
+device. This can be specified by a full device node path, or without the
+.Pa /dev/
+prefix.
+.Pp
+The
+.Fl B
+flag can be used to specify the default bhyve flags to use. This option
+overrides the default, which is currently
+.Fl A Fl H Fl I Fl w .
+The argument will need to be quoted.
+.\" BUGS
+.Sh BUGS
+Probaby many.
+.Sh AUTHOR
+colvin@grond.us / colvinwellborn@gmail.com
