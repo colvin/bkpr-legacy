@@ -2,10 +2,13 @@
 perl frontend for bhyve
 
 ## Dependencies
-p5-DBI
-p5-DBD-mysql
-p5-DBD-SQLite
-p5-Switch
+`p5-DBI`
+
+`p5-DBD-mysql`
+
+`p5-DBD-SQLite`
+
+`p5-Switch`
 
 ## About
 `bkpr` is a frontend for `bhyve` I started putting together before there were other good frontends out there.
