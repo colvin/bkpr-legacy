@@ -31,11 +31,13 @@ sub status {
 
 				## get process information on the bhyve process
 				my $ps = `ps ax -o ppid,pid,etime,args | grep bhyve | grep $d | grep -v grep`;
+				$ps =~ s/^\s+//g;
 				($bhyve->{'ppid'},$bhyve->{'pid'},$bhyve->{'etime'},@cmd) = split(/\s+/,$ps);
 				$bhyve->{'cmd'} = join(' ',@cmd);
 
 				## get process information for bhyve's parent, likely a bkpr process
 				my $pps = `ps -p $bhyve->{'ppid'} -o ppid,pid,etime,args | tail -n +2`;
+				$pps =~ s/^\s+//g;
 				($bkpr->{'ppid'},$bkpr->{'pid'},$bkpr->{'etime'},@cmd) = split(/\s+/,$pps);
 				$bkpr->{'cmd'} = join(' ',@cmd);
 
