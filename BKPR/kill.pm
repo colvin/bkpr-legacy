@@ -68,6 +68,9 @@ sub kill {
 			$self->err_set("failed to reset $name, returned $r");
 			return 0;
 		}
+	} else {
+		$self->err_set('must give either -r (reboot) or -p (poweroff)');
+		return 0;
 	}
 }
 
