@@ -60,6 +60,7 @@ sub update {
 	$self->print_guest_list_header();
 	$self->print_guest_list($guest);
 	$self->print_guest_list_header();
+	$self->output("warning: this operation is experimental!");
 	##XXX
 
 	$guest->{'name'}	= $cmdopts{'n'} if ($cmdopts{'n'});
@@ -127,6 +128,10 @@ sub update {
 	$self->print_guest_list($guest);
 	$self->print_guest_list_header();
 	##XXX
+
+	unless ($self->{'noop'}) {
+		return $self->update_guest($index,$guest);
+	}
 
 	return 1;
 }

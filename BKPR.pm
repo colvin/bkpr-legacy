@@ -780,17 +780,17 @@ sub insert_guest {
 		$vmquery->finish();
 
 		my $diskquery = $self->{'db'}->prepare("
-			INSERT INTO disk (vmid,type,path,root,cloned,cloneof) VALUES 
+			INSERT INTO disk (vmid,type,path,root,cloned,cloneof) VALUES
 			(?,?,?,?,?,?)");
 
 		$diskquery->execute(
-				$guest->{'vmid'},
-				$guest->{'root'}->{'type'},
-				$guest->{'root'}->{'path'},
-				$guest->{'root'}->{'root'},
-				$guest->{'root'}->{'cloned'},
-				$guest->{'root'}->{'cloneof'}
-			);
+			$guest->{'vmid'},
+			$guest->{'root'}->{'type'},
+			$guest->{'root'}->{'path'},
+			$guest->{'root'}->{'root'},
+			$guest->{'root'}->{'cloned'},
+			$guest->{'root'}->{'cloneof'}
+		);
 
 		foreach my $disk (@{$guest->{'disks'}}) {
 			$diskquery->execute(
@@ -820,6 +820,55 @@ sub insert_guest {
 		$self->err_set("failed inserting guest: $@");
 		return 0;
 	}
+
+	return 1;
+}
+
+sub update_guest {
+	my $self	= shift;
+	my $vmid	= shift;
+	my $guest	= shift;
+
+	unless (($vmid) and ($guest)) {
+		$self->err_set("update_guest(): no data passed");
+		return 0;
+	}
+
+	my $up = $self->{'db'}->prepare("
+		UPDATE vm
+			SET
+				vmid = ?,
+				name = ?,
+				cpu = ?,
+				mem = ?,
+				os = ?,
+				loader = ?,
+				grubmap = ?,
+				grubcmd = ?,
+				descr = ?
+			WHERE vmid = ?
+		");
+
+	eval {
+		$up->execute(
+			$guest->{'vmid'},
+			$guest->{'name'},
+			$guest->{'cpu'},
+			$guest->{'mem'},
+			$guest->{'os'},
+			$guest->{'loader'},
+			$guest->{'grubmap'},
+			$guest->{'grubcmd'},
+			$guest->{'descr'},
+			$vmid
+		);
+	}; if ($@) {
+		$self->err_set("failed to update guest: $@");
+		return 0;
+	}
+
+	$self->warning("update_guest(): updating disks not yet supported");
+	$self->warning("update_guest(): updating network not yet supported");
 
 	return 1;
 }
