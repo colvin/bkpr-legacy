@@ -7,7 +7,7 @@
 .Nd bhyve virtual machine manager in Perl
 .\" SYNOPSIS
 .Sh SYNOPSIS
-.Nm 
+.Nm
 .Op Fl ndN Fl f Ar file
 .Ar operation
 .Op ...
@@ -26,7 +26,7 @@ No-operation (dry run) mode
 .It Fl f Ar file
 Explicit configuration file
 .El
-.It 
+.It
 An operation keyword:
 .Bl -tag -offset indent -compact -width fourfourfour
 .It Ar help
@@ -88,7 +88,7 @@ section describes those formats.
 The operating system name supplied for a guest is specified as one of the
 following strings:
 .Pp
-.Bl -tag -compact -offset indent
+.Bl -tag -compact -offset indent -width xxxxxxxxxx
 .It Ar freebsd
 .Fx
 .It Ar openbsd
@@ -108,13 +108,15 @@ The loader
 .Nm
 uses to boot the guest is specified using one of the following strings:
 .Pp
-.Bl -tag -compact -offset indent
+.Bl -tag -compact -offset indent -width xxxxxxxxxx
 .It Ar bhyveload
 bhyveload
 .It Ar grub
 grub-bhyve
 .It Ar uefi
 UEFI
+.It Ar uefi-csm
+UEFI-CSM
 .El
 .\" DISK SPEC
 .Ss DISK SPEC
@@ -205,13 +207,13 @@ passed to when creating the resource. For file-based disks this is the
 .Xr truncate 1
 utility, for zfs volumes, this is
 .Xr zfs 8
-create 
+create
 .Fl V .
 .\" NET SPEC
 .Ss NET SPEC
 Network interfaces are described using either the keyword
 .Ar auto ,
-or a double-colon delimited pair of 
+or a double-colon delimited pair of
 .Xr bridge 4
 and
 .Xr tap 4
@@ -237,7 +239,7 @@ auto       -->  bridge0, tapN
 .Fl f Ar file
 .Ar init
 .Pp
-The 
+The
 .Ar init
 operation performs the necessary setup for running
 .Nm .
@@ -565,11 +567,7 @@ grub
 .Bd -offset indent -compact
 .Oo
 .Fl l
-uefi
-.Oo
-.Fl U
-std|csm
-.Oc
+{uefi|uefi-csm}
 .Op Fl V Ar string
 .Oc
 .Ed
@@ -604,11 +602,6 @@ The majority of the flags supported by the
 .Ar start
 operation are the standard flags shown above. However, there are some
 flags only used by this operation.
-.Pp
-The
-.Fl U
-flag allows specifying which UEFI image to use. The recognized
-arguments are 'std', which is the default, or 'csm'.
 .Pp
 The
 .Fl V

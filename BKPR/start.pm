@@ -113,19 +113,17 @@ sub start {
 		$loadcmd = loader_bhyveload($self,$guest);
 	} elsif ($guest->{'loader'} eq 'grub') {
 		$loadcmd = loader_grub($self,$guest);
-	} elsif ($guest->{'loader'} eq 'uefi') {
-		$guest->{'uefi'} = $bhyve_uefi_standard;
-		if ($cmdopts{'u'}) {
-			if ($cmdopts{'u'} =~ /csm/i) {
-				$guest->{'uefi'} = $bhyve_uefi_csm;
-			} elsif ($cmdopts{'u'} =~ /std/i) {
-				$guest->{'uefi'} = $bhyve_uefi_standard;
-			}
-		} elsif ($cmdopts{'U'}) {
+	} elsif ($guest->{'loader'} =~ /^uefi/i) {
+		if ($guest->{'loader'} =~ /csm/i) {
+			$guest->{'uefi'} = $bhyve_uefi_csm;
+		} else {
+			$guest->{'uefi'} = $bhyve_uefi_standard;
+		}
+		if ($cmdopts{'U'}) {
 			$guest->{'uefi'} = $cmdopts{'U'};
 		}
 	}
-	unless ($guest->{'loader'} eq 'uefi') {
+	unless ($guest->{'loader'} =~ /uefi/i) {
 		unless ($loadcmd) {
 			return 0;
 		}
@@ -194,7 +192,7 @@ sub start {
 
 	if ($self->{'noop'}) {
 		$self->output("(noop) shell%  $destroyvmm");
-		$self->output("(noop) shell%  $loadcmd") if ($guest->{'loader'} ne 'uefi');
+		$self->output("(noop) shell%  $loadcmd") if ($guest->{'loader'} !~ /uefi/i);
 		$self->output("(noop) shell%  $bhyvecmd");
 		$self->output("(noop) shell%  $destroyvmm");
 	} else {
@@ -202,7 +200,7 @@ sub start {
 		RUNLOOP: while ($e == 0) {
 			$self->debug($destroyvmm);
 			system($destroyvmm);
-			if ($guest->{'loader'} ne 'uefi') {
+			if ($guest->{'loader'} !~ /uefi/i) {
 				$self->debug($loadcmd);
 				my $loadres = system($loadcmd);
 				if ($loadres) {
@@ -255,7 +253,7 @@ sub bhyvecmd {
 
 	$bhyvecmd = "bhyve $bhyve_default_flags -s 0,amd_hostbridge";
 
-	if (($guest->{'loader'} eq 'uefi') and ($guest->{'os'} ne 'freebsd')) {
+	if (($guest->{'loader'} =~ /uefi/i) and ($guest->{'os'} ne 'freebsd')) {
 		my $diskc = scalar @{$guest->{'disks'}};
 		if ($diskc > 1) {	## root counts as one
 			$self->err_set("uefi booting is currently limited to 2 ahci disks, one of which is the root");
@@ -294,7 +292,7 @@ sub bhyvecmd {
 	$bhyvecmd .= " -s 31,lpc";
 	$bhyvecmd .= " -l com1,$guest->{'com'}";
 
-	if ($guest->{'loader'} eq 'uefi') {
+	if ($guest->{'loader'} =~ /uefi/i) {
 		$bhyvecmd .= " -l bootrom," . $guest->{'uefi'};
 	}
 
