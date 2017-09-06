@@ -43,7 +43,7 @@ sub create {
 	$guest->{'cpu'} = $cmdopts{'c'} if ($cmdopts{'c'});
 	$guest->{'mem'} = $cmdopts{'m'} if ($cmdopts{'m'});
 	$guest->{'os'} = $cmdopts{'o'} if ($cmdopts{'o'});
-	$guest->{'loader'} = $cmdopts{'l'} if ($cmdopts{'l'});
+	$guest->{'loader'} = lc $cmdopts{'l'} if ($cmdopts{'l'});
 	$guest->{'descr'} = $cmdopts{'D'} if ($cmdopts{'D'});
 
 	$guest->{'grubmap'} = $cmdopts{'M'} if ($cmdopts{'M'});
