@@ -305,7 +305,7 @@ list
 .Oo
 .Op Fl i Ar index Ns | Ns Fl n Ar name
 |
-.Op Fl w Ar \&"key\ *\ value\&"
+.Op Fl x Ar \&"key\ *\ value\&"
 .Oc
 .Op Fl t Ar format
 .Pp
@@ -364,7 +364,7 @@ operation on a string field such as
 for instance, may yield unexpected results.
 .Pp
 Multiple instances of the
-.Fl w
+.Fl x
 flag are supported, and will be applied in order as ANDs,
 as implemented by the SQL backend.
 .Pp
@@ -407,19 +407,19 @@ The current valid guest fields are:
 .sp
 .Bl -tag -compact -offset indent -width 123412341234
 .It name
-.Fl w Qq name % jim
+.Fl x Qq name % jim
 .It cpu
-.Fl w Qq cpu > 2
+.Fl x Qq cpu > 2
 .It mem
-.Fl w Qq mem < 4096
+.Fl x Qq mem < 4096
 .It os
-.Fl w Qq os = freebsd
+.Fl x Qq os = freebsd
 .It loader
-.Fl w Qq loader = uefi
+.Fl x Qq loader = uefi
 .It root
-.Fl w Qq root % tank
+.Fl x Qq root % tank
 .It disk
-.Fl w Qq disk = tank/vol/foo
+.Fl x Qq disk = tank/vol/foo
 .\".It net
 .\".Fl w Qq net = tap8
 .El
@@ -427,7 +427,7 @@ The current valid guest fields are:
 For example, to find all of Jim's guests configured for
 more than 2048MB of memory:
 .Bd -literal
-    bkpr list -w "name % jim" -w "mem > 2048"
+    bkpr list -x "name % jim" -w "mem > 2048"
 
 .Ed
 Which equates to the SQL:
@@ -438,7 +438,7 @@ Which equates to the SQL:
 A minor effort is made to protect against erroneous or
 malicious behavior in this feature, however the SQL
 clause build using the
-.Fl w
+.Fl x
 feature is mainly processed as-is. Use caution.
 .\" CREATE
 .Sh CREATE
