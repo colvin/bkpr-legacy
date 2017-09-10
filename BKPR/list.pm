@@ -10,12 +10,12 @@ sub list {
 	my $format = $self->{'cfg'}->{'listformat'};
 	my $i;
 	my $n;
-	my @w;
+	my @x;
 	GetOptions(
 		't=s' => \$format,
 		'i=i' => \$i,
 		'n=s' => \$n,
-		'w=s' => \@w
+		'x=s' => \@x
 	);
 
 	unless ($self->connect()) {
@@ -25,10 +25,10 @@ sub list {
 
 	my @guests;
 
-	if (@w) {
+	if (@x) {
 		my $where = 0;
 		my $clause = "";
-		foreach my $pat (@w) {
+		foreach my $pat (@x) {
 			my ($k,$o,$v) = $pat =~ /(.*)\s+(\S)\s+(.*)/;
 			unless ($k and $o and $v) {
 				$self->err("invalid match criteria: $pat");

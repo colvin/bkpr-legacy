@@ -1073,10 +1073,12 @@ sub normalize_os {
 sub validate_loader {
 	my $self = shift;
 	my $loader = shift;
-	switch($loader) {
-		case 'bhyveload'	{ return 1 }
-		case 'grub'		{ return 1 }
-		case 'uefi'		{ return 1 }
+	if ($loader eq 'bhyveload') {
+		return 1;
+	} elsif ($loader eq 'grub') {
+		return 1;
+	} elsif ($loader =~ /^uefi(-csm|)$/i) {
+		return 1;
 	}
 	return 0;
 }
