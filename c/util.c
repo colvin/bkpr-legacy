@@ -1,6 +1,17 @@
 #include "bkpr.h"
 
-extern bkpr_err_t	*e;
+extern bkpr_context_t	*ctx;
+
+bkpr_context_t *
+ctx_alloc(void)
+{
+	bkpr_context_t	*p;
+
+	if ((p = calloc(1,sizeof(bkpr_context_t))) == NULL)
+		return NULL;
+
+	return p;
+}
 
 bkpr_err_t *
 err_alloc(void)

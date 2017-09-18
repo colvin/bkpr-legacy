@@ -3,10 +3,23 @@
 
 #define BKPR_SZ_ERRSTR		BUFSIZ
 
+typedef enum bkpr_verbosity {
+	BKPR_VERB_QUIET,
+	BKPR_VERB_STD,
+	BKPR_VERB_DEBUG
+} bkpr_verbosity;
+
 typedef struct bkpr_err_t {
 	int	no;
 	char	str[BKPR_SZ_ERRSTR];
 } bkpr_err_t;
+
+typedef struct bkpr_context_t {
+	bkpr_verbosity		verbosity;
+	bool			noop;
+	bkpr_err_t		*err;
+	DBCONN			*db;
+} bkpr_context_t;
 
 #define BKPR_SZ_GUEST_NAME	256
 #define BKPR_SZ_GUEST_OS	16

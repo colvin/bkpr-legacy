@@ -10,15 +10,19 @@
 #include <errno.h>
 #include <stdbool.h>
 
-#define PROGRAM "bkpr"
-#define VERSION	"0.0"
+#define BKPR_VERSION	"0.0"
 
+#include "bkpr_db.h"
 #include "bkpr_types.h"
 
-void	usage(void);
+#define UNIMP(x)	fprintf(stderr,"unimplemented: %s\n",x)
 
-int	test(void);
+void		usage(void);
 
+/*XXX beware this function */
+int		test(void);
+
+bkpr_context_t	*ctx_alloc(void);
 bkpr_err_t	*err_alloc(void);
 
 guest_disk_t	*disk_alloc(int);
@@ -39,5 +43,5 @@ guest_nic_t	*nic_list_remove(guest_nic_t *, int);
 guest_nic_t	*nic_list_find(guest_nic_t *, int);
 void		nic_dump(guest_nic_t *);
 
-#endif
+#endif /* BKPR_H */
 
