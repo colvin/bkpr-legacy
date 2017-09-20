@@ -14,11 +14,20 @@ typedef struct bkpr_err_t {
 	char	str[BKPR_SZ_ERRSTR];
 } bkpr_err_t;
 
+typedef enum bkpr_db_type {
+	BKPR_DBTYPE_INVALID,
+	BKPR_DBTYPE_SQLITE,
+	BKPR_DBTYPE_MYSQL
+} bkpr_db_type;
+
+struct bkpr_db_t;	/* forward declaration */
+
 typedef struct bkpr_context_t {
 	bkpr_verbosity		verbosity;
 	bool			noop;
 	bkpr_err_t		*err;
-	DBCONN			*db;
+	bkpr_db_type		dbtype;
+	struct bkpr_db_t	*db;
 } bkpr_context_t;
 
 #define BKPR_SZ_GUEST_NAME	256

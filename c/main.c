@@ -13,6 +13,10 @@ main(int argc, char *argv[])
 	if ((ctx = ctx_alloc()) == NULL)
 		err(ENOMEM,"out of memory");
 
+#ifdef DB_SQLITE
+	ctx->dbtype = BKPR_DBTYPE_SQLITE;
+#endif
+
 	if ((ctx->err = err_alloc()) == NULL)
 		err(ENOMEM,"out of memory");
 
@@ -40,6 +44,10 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	/* XXX */
+	if (db_init())
+		err(ENOMEM,"out of memory");
+
 	if ((operation = strdup(argv[0])) == NULL)
 		err(ENOMEM,"out of memory");
 
@@ -63,10 +71,15 @@ main(int argc, char *argv[])
 		r = test();
 	else {
 		fprintf(stderr,"unknown operation: %s\n",operation);
+		free(operation);
 		usage();
 		exit(EXIT_FAILURE);
 	}
+
 	free(operation);
+
+	/* XXX */
+	db_disconnect();
 
 	return r;
 }

@@ -12,15 +12,14 @@
 
 #define BKPR_VERSION	"0.0"
 
-#include "bkpr_db.h"
 #include "bkpr_types.h"
+#include "bkpr_db.h"
 
 #define UNIMP(x)	fprintf(stderr,"unimplemented: %s\n",x)
 
 void		usage(void);
 
-/*XXX beware this function */
-int		test(void);
+int		test(void);	/* beware */
 
 bkpr_context_t	*ctx_alloc(void);
 bkpr_err_t	*err_alloc(void);

@@ -271,3 +271,39 @@ nic_dump(guest_nic_t *n)
 	printf("}\n");
 }
 
+bkpr_db_type
+db_type(char *str)
+{
+
+#define DBTYPECMP(x)	(strcmp(str,x) == 0)
+
+	if (DBTYPECMP("sqlite"))
+		return BKPR_DBTYPE_SQLITE;
+	else if (DBTYPECMP("mysql"))
+		return BKPR_DBTYPE_MYSQL;
+	else
+		return BKPR_DBTYPE_INVALID;
+}
+
+char * /* must free */
+db_type_str(bkpr_db_type type)
+{
+	char	*str;
+
+	switch(type) {
+		case BKPR_DBTYPE_INVALID:
+			str = strdup("invalid");
+			break;
+		case BKPR_DBTYPE_SQLITE:
+			str = strdup("sqlite");
+			break;
+		case BKPR_DBTYPE_MYSQL:
+			str = strdup("mysql");
+			break;
+		default:
+			str = strdup("invalid");
+			break;
+	}
+
+	return str;
+}
