@@ -1,6 +1,9 @@
 PROG	= bkpr
 MAN	=
-SRCS	= main.c util.c test.c
+SRCS	= main.c\
+	  util.c\
+	  err.c\
+	  test.c
 
 DB	?= SQLITE
 

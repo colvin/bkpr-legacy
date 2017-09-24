@@ -10,16 +10,22 @@ main(int argc, char *argv[])
 	int	r, ch;
 	char	*operation;
 
-	if ((ctx = ctx_alloc()) == NULL)
-		err(ENOMEM,"out of memory");
+	if ((ctx = ctx_alloc()) == NULL) {
+		errprint();
+		exit(ENOMEM);
+	}
 
+	ctx->verbosity = BKPR_VERB_STD;
 #ifdef DB_SQLITE
 	ctx->dbtype = BKPR_DBTYPE_SQLITE;
 #endif
 
-	if ((ctx->err = err_alloc()) == NULL)
-		err(ENOMEM,"out of memory");
+	if ((ctx->err = err_alloc()) == NULL) {
+		errprint();
+		exit(ENOMEM);
+	}
 
+	opterr = 0;
 	while ((ch = getopt(argc,argv,"qdN")) != -1) {
 		switch(ch) {
 			case 'q':
@@ -33,7 +39,7 @@ main(int argc, char *argv[])
 				break;
 			default:
 				usage();
-				exit(EXIT_FAILURE);
+				exit(EINVAL);
 		}
 	}
 	argc -= optind;
@@ -41,15 +47,22 @@ main(int argc, char *argv[])
 
 	if (argc < 1) {
 		usage();
-		exit(EXIT_FAILURE);
+		exit(EINVAL);
 	}
-
-	/* XXX */
-	if (db_init())
-		err(ENOMEM,"out of memory");
 
 	if ((operation = strdup(argv[0])) == NULL)
 		err(ENOMEM,"out of memory");
+
+	if (OPCMP("help")) {
+		free(operation);
+		usage();
+		exit(EXIT_SUCCESS);
+	}
+
+	if (db_init()) {
+		errprint();
+		exit(EXIT_FAILURE);
+	}
 
 	r = EXIT_FAILURE;
 
@@ -70,23 +83,25 @@ main(int argc, char *argv[])
 	else if (OPCMP("test"))
 		r = test();
 	else {
-		fprintf(stderr,"unknown operation: %s\n",operation);
+		complain("unknown operation: %s",operation);
 		free(operation);
+		db_disconnect();
 		usage();
-		exit(EXIT_FAILURE);
+		exit(EINVAL);
 	}
 
 	free(operation);
-
-	/* XXX */
 	db_disconnect();
 
-	return r;
+	return (r);
 }
 
 void
 usage(void)
 {
+
+	if (ctx->verbosity == BKPR_VERB_QUIET)
+		return;
 
 	fprintf(stderr,"\n");
 	fprintf(stderr,"bkpr %s\n",BKPR_VERSION);

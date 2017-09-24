@@ -6,28 +6,35 @@ int
 db_init(void)
 {
 
-	if ((ctx->db = calloc(1,sizeof(bkpr_db_t))) == NULL)
-		return -1;
+	if ((ctx->db = calloc(1,sizeof(bkpr_db_t))) == NULL) {
+		errset(ENOMEM,"out of memory");
+		return (-1);
+	}
 
 	ctx->db->path = strdup(BKPR_SQLITE_PATH_DEFAULT);	/* TODO */
 
 	if (db_connect())
-		return -1;
+		return (-1);
 
-	return 0;
+	return (0);
 }
 
 int
 db_connect(void)
 {
 
-	if (ctx->db->path == NULL)
-		return -1;
+	if (ctx->db->path == NULL) {
+		errset(EINVAL,"sqlite3 database path is null");
+		return (-1);
+	}
 
-	if (sqlite3_open(ctx->db->path,&ctx->db->conn) != SQLITE_OK)
-		return -1;
+	if (sqlite3_open(ctx->db->path,&ctx->db->conn) != SQLITE_OK) {
+		errset(EINVAL,"db connect failed: %s\n",sqlite3_errmsg(ctx->db->conn));
+		db_disconnect();
+		return (-1);
+	}
 
-	return 0;
+	return (0);
 }
 
 void

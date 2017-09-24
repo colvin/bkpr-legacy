@@ -7,10 +7,12 @@ ctx_alloc(void)
 {
 	bkpr_context_t	*p;
 
-	if ((p = calloc(1,sizeof(bkpr_context_t))) == NULL)
-		return NULL;
+	if ((p = calloc(1,sizeof(bkpr_context_t))) == NULL) {
+		errset(ENOMEM,"out of memory");
+		return (NULL);
+	}
 
-	return p;
+	return (p);
 }
 
 bkpr_err_t *
@@ -18,9 +20,12 @@ err_alloc(void)
 {
 	bkpr_err_t	*p;
 
-	if ((p = calloc(1,sizeof(bkpr_err_t))) == NULL)
-		return NULL;
-	return p;
+	if ((p = calloc(1,sizeof(bkpr_err_t))) == NULL) {
+		errset(ENOMEM,"out of memory");
+		return (NULL);
+	}
+
+	return (p);
 }
 
 guest_disk_t *
@@ -28,9 +33,12 @@ disk_alloc(int n)
 {
 	guest_disk_t	*d;
 
-	if ((d = calloc(n,sizeof(guest_disk_t))) == NULL)
-		return NULL;
-	return d;
+	if ((d = calloc(n,sizeof(guest_disk_t))) == NULL) {
+		errset(ENOMEM,"out of memory");
+		return (NULL);
+	}
+
+	return (d);
 }
 
 void
@@ -74,7 +82,7 @@ disk_list_remove(guest_disk_t *lst, char *path)
 	guest_disk_t	*t;
 
 	if ((t = disk_list_find(lst,path)) == NULL)
-		return lst;
+		return (lst);
 
 	if (t == lst) {			/* first node */
 		lst = lst->n;
@@ -87,7 +95,7 @@ disk_list_remove(guest_disk_t *lst, char *path)
 	}
 	disk_free(t);
 
-	return lst;
+	return (lst);
 }
 
 guest_disk_t *
@@ -106,9 +114,9 @@ disk_list_find(guest_disk_t *lst, char *path)
 	}
 
 	if (f)
-		return t;
+		return (t);
 	else
-		return NULL;
+		return (NULL);
 }
 
 void
@@ -139,13 +147,13 @@ disk_type_str(guest_disk_type dt)
 
 	switch(dt) {
 		case DISK_TYPE_INVAL:
-			return DISK_TYPE_STR_INVAL;
+			return (DISK_TYPE_STR_INVAL);
 		case DISK_TYPE_FILE:
-			return DISK_TYPE_STR_FILE;
+			return (DISK_TYPE_STR_FILE);
 		case DISK_TYPE_ZVOL:
-			return DISK_TYPE_STR_ZVOL;
+			return (DISK_TYPE_STR_ZVOL);
 		default:
-			return DISK_TYPE_STR_INVAL;
+			return (DISK_TYPE_STR_INVAL);
 	}
 }
 
@@ -154,11 +162,11 @@ disk_type(char *str)
 {
 
 	if (strcmp(str,"file") == 0)
-		return DISK_TYPE_FILE;
+		return (DISK_TYPE_FILE);
 	else if (strcmp(str,"zvol") == 0)
-		return DISK_TYPE_ZVOL;
+		return (DISK_TYPE_ZVOL);
 	else
-		return DISK_TYPE_INVAL;
+		return (DISK_TYPE_INVAL);
 }
 
 /* nics */
@@ -168,10 +176,12 @@ nic_alloc(int c)
 {
 	guest_nic_t	*n;
 
-	if ((n = calloc(c,sizeof(guest_nic_t))) == NULL)
-		return NULL;
+	if ((n = calloc(c,sizeof(guest_nic_t))) == NULL) {
+		errset(ENOMEM,"out of memory");
+		return (NULL);
+	}
 
-	return n;
+	return (n);
 }
 
 void
@@ -216,7 +226,7 @@ nic_list_remove(guest_nic_t *lst, int tap)
 	guest_nic_t	*t;
 
 	if ((t = nic_list_find(lst,tap)) == NULL)
-		return lst;
+		return (lst);
 
 	if (t == lst) {			/* first node */
 		lst = lst->n;
@@ -230,7 +240,7 @@ nic_list_remove(guest_nic_t *lst, int tap)
 	}
 	nic_free(t);
 
-	return lst;
+	return (lst);
 }
 
 guest_nic_t *
@@ -249,9 +259,9 @@ nic_list_find(guest_nic_t *lst, int tap)
 	}
 
 	if (f)
-		return t;
+		return (t);
 	else
-		return NULL;
+		return (NULL);
 }
 
 void
@@ -278,11 +288,11 @@ db_type(char *str)
 #define DBTYPECMP(x)	(strcmp(str,x) == 0)
 
 	if (DBTYPECMP("sqlite"))
-		return BKPR_DBTYPE_SQLITE;
+		return (BKPR_DBTYPE_SQLITE);
 	else if (DBTYPECMP("mysql"))
-		return BKPR_DBTYPE_MYSQL;
+		return (BKPR_DBTYPE_MYSQL);
 	else
-		return BKPR_DBTYPE_INVALID;
+		return (BKPR_DBTYPE_INVALID);
 }
 
 char * /* must free */
@@ -305,5 +315,28 @@ db_type_str(bkpr_db_type type)
 			break;
 	}
 
-	return str;
+	return (str);
 }
+
+int
+chomp(char *str)
+{
+	int	c = 0;
+	size_t	l = 0;
+
+	if (str == NULL)
+		return (0);
+
+	l = strlen(str);
+	if (l == 0)
+		return (0);
+
+	while (str[l-1] == '\n') {
+		str[l-1] = '\0';
+		l--;
+		c++;
+	}
+
+	return (c);
+}
+
