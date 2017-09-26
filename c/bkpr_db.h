@@ -28,4 +28,3 @@ int		db_connect(void);
 void		db_disconnect(void);
 
 #endif /* BKPR_DB_H */
-

@@ -28,6 +28,45 @@ err_alloc(void)
 	return (p);
 }
 
+void
+guest_dump(guest *g)
+{
+	guest_disk	*disk;
+	guest_nic	*nic;
+
+	if (g == NULL) {
+		printf("guest {}\n");
+		return;
+	}
+
+	disk = g->disk;
+	nic = g->nic;
+
+	printf("guest {\n");
+	printf("\t%-8s %lu\n","vmid",g->vmid);
+	printf("\t%-8s %s\n","name",g->name);
+	printf("\t%-8s %d\n","cpu",g->cpu);
+	printf("\t%-8s %lu\n","mem",g->mem);
+	printf("\t%-8s %s\n","os",guest_os_type_str(g->os));
+	printf("\t%-8s %s\n","loader",guest_loader_type_str(g->loader));
+
+	do {
+		disk_dump(1,disk);
+		if (disk)
+			disk = disk->next;
+	} while (disk != NULL);
+
+	do {
+		nic_dump(1,nic);
+		if (nic)
+			nic = nic->next;
+	} while (nic != NULL);
+
+	printf("\t%-8s %s\n","descr",g->descr);
+	printf("\t%-8s %p\n","addr",g);
+	printf("}\n");
+}
+
 guest_os
 guest_os_type(char *str)
 {
@@ -91,15 +130,15 @@ guest_loader_type(char *in)
 #define LDCMP(x)	(strcmp(t,x) == 0)
 
 	if (LDCMP("bhyveload"))
-		return (BKPR_LOADER_BHYVELOAD);
+		r = BKPR_LOADER_BHYVELOAD;
 	else if (LDCMP("grub"))
-		return (BKPR_LOADER_GRUB);
+		r = BKPR_LOADER_GRUB;
 	else if (LDCMP("uefi"))
-		return (BKPR_LOADER_UEFI);
+		r = BKPR_LOADER_UEFI;
 	else if (LDCMP("uefi-csm"))
-		return (BKPR_LOADER_UEFI_CSM);
+		r = BKPR_LOADER_UEFI_CSM;
 	else
-		return (BKPR_LOADER_INVAL);
+		r = BKPR_LOADER_INVAL;
 
 	free(t);
 	return (r);
@@ -211,25 +250,30 @@ disk_list_find(guest_disk *lst, char *path)
 }
 
 void
-disk_dump(guest_disk *d)
+disk_dump(int lvl, guest_disk *d)
 {
+	char	ind[BKPR_SZ_MAXINDENT];
+
+	memset(ind,'\0',sizeof(ind));
+	for (int i = 0; ((i < lvl) && (i < sizeof(ind))); i++)
+		ind[i] = '\t';
 
 	if (d == NULL) {
-		printf("disk { }\n");
+		printf("%sdisk { }\n",ind);
 		return;
 	}
 
-	printf("disk {\n");
-	printf("\t%-8s %d\n","vmid",d->vmid);
-	printf("\t%-8s %d\n","diskid",d->diskid);
-	printf("\t%-8s %s\n","type",disk_type_str(d->type));
-	printf("\t%-8s %s\n","path",d->path);
-	printf("\t%-8s %d\n","root",d->root);
-	printf("\t%-8s %d\n","cloned",d->cloned);
+	printf("%sdisk {\n",ind);
+	printf("%s\t%-8s %d\n",ind,"vmid",d->vmid);
+	printf("%s\t%-8s %d\n",ind,"diskid",d->diskid);
+	printf("%s\t%-8s %s\n",ind,"type",disk_type_str(d->type));
+	printf("%s\t%-8s %s\n",ind,"path",d->path);
+	printf("%s\t%-8s %d\n",ind,"root",d->root);
+	printf("%s\t%-8s %d\n",ind,"cloned",d->cloned);
 	if (d->cloned)
-		printf("\t%-8s %s\n","cloneof",d->cloneof);
-	printf("\t%-8s %p\n","addr",d);
-	printf("}\n");
+		printf("%s\t%-8s %s\n",ind,"cloneof",d->cloneof);
+	printf("%s\t%-8s %p\n",ind,"addr",d);
+	printf("%s}\n",ind);
 }
 
 char *
@@ -356,20 +400,26 @@ nic_list_find(guest_nic *lst, int tap)
 }
 
 void
-nic_dump(guest_nic *n)
+nic_dump(int lvl, guest_nic *n)
 {
+	char	ind[BKPR_SZ_MAXINDENT];
+
+	memset(ind,'\0',sizeof(ind));
+	for (int i = 0; ((i < lvl) && (i < sizeof(ind))); i++)
+		ind[i] = '\t';
+
 	if (n == NULL) {
-		printf("nic { }\n");
+		printf("%snic { }\n",ind);
 		return;
 	}
 
-	printf("nic {\n");
-	printf("\t%-8s %d\n","nicid",n->nicid);
-	printf("\t%-8s %d\n","vmid",n->vmid);
-	printf("\t%-8s %d\n","tap",n->tap);
-	printf("\t%-8s %d\n","bridge",n->bridge);
-	printf("\t%-8s %p\n","addr",n);
-	printf("}\n");
+	printf("%snic {\n",ind);
+	printf("%s\t%-8s %d\n",ind,"nicid",n->nicid);
+	printf("%s\t%-8s %d\n",ind,"vmid",n->vmid);
+	printf("%s\t%-8s %d\n",ind,"tap",n->tap);
+	printf("%s\t%-8s %d\n",ind,"bridge",n->bridge);
+	printf("%s\t%-8s %p\n",ind,"addr",n);
+	printf("%s}\n",ind);
 }
 
 bkpr_db_type

@@ -5,70 +5,41 @@ extern bkpr_context	*ctx;
 int
 test(void)
 {
+	guest		*g;
+	guest_nic	*n1;
+	guest_disk	*d1;
 
-	guest_disk	*sp, *disk, *disk1, *disk2, *disk3;
-	if ((disk1 = disk_alloc(1)) == NULL)
-		err(ENOMEM,"out of memory");
-	disk1->diskid = 1;
-	disk1->vmid = 1;
-	disk1->type = DISK_TYPE_FILE;
-	snprintf(disk1->path,BKPR_SZ_DISK_PATH,"%s","/tmp/foo.img");
-	disk1->cloned = 0;
-	/*
-	disk1->tap = 0;
-	disk1->bridge = 0;
-	*/
+	if ((g = calloc(1,sizeof(guest))) == NULL)
+		return (ENOMEM);
 
-	sp = disk = disk1;
+	g->vmid = 1;
+	snprintf(g->name,sizeof(g->name),"%s","foomatic");
+	g->cpu = 4;
+	g->mem = 6144;
+	g->os = guest_os_type("FreeBSD");
+	g->loader = guest_loader_type("bhyveload");
+	snprintf(g->descr,sizeof(g->descr),"%s","A sample FreeBSD guest");
 
-	if ((disk2 = disk_alloc(1)) == NULL)
-		err(ENOMEM,"out of memory");
-	disk2->diskid = 2;
-	disk2->vmid = 1;
-	disk2->type = DISK_TYPE_ZVOL;
-	snprintf(disk2->path,BKPR_SZ_DISK_PATH,"%s","zstore/vol/bkpr/bar");
-	disk2->cloned = 0;
-	/*
-	disk2->tap = 1;
-	disk2->bridge = 0;
-	*/
+	n1 = calloc(1,sizeof(guest_nic));
+	n1->nicid = 1;
+	n1->vmid = 1;
+	n1->bridge = 0;
+	n1->tap = 0;
+	g->nic = n1;
 
-	disk_list_attach(disk,disk2);
+	d1 = calloc(1,sizeof(guest_disk));
+	d1->diskid = 1;
+	d1->vmid = 1;
+	d1->type = DISK_TYPE_ZVOL;
+	snprintf(d1->path,sizeof(d1->path),"%s","tank/vol/foo");
+	d1->root = 1;
+	g->disk = d1;
 
-	if ((disk3 = disk_alloc(1)) == NULL)
-		err(ENOMEM,"out of memory");
-	disk3->diskid = 3;
-	disk3->vmid = 1;
-	snprintf(disk3->path,BKPR_SZ_DISK_PATH,"%s","/tmp/zorp.img");
-	disk3->cloned = 1;
-	snprintf(disk3->cloneof,BKPR_SZ_DISK_PATH,"%s","/tmp/foo.img");
-	/*
-	disk3->tap = 2;
-	disk3->bridge = 1;
-	*/
+	guest_dump(g);
 
-	disk_list_attach(disk,disk3);
-
-	while (disk != NULL) {
-		disk_dump(disk);
-		disk = disk->next;
-	}
-
-	disk = sp;
-	//sp = disk_list_remove(sp,0);
-	//sp = disk_list_remove(sp,1);
-	//sp = disk_list_remove(sp,2);
-	sp = disk_list_remove(sp,"zstore/vol/bkpr/bar");
-	//sp = disk_list_remove(sp,"/tmp/foo.img");
-	disk = sp;
-
-	printf("--\n");
-	while (disk != NULL) {
-		disk_dump(disk);
-		disk = disk->next;
-	}
-
-	disk_free_all(sp);
+	disk_free(d1);
+	nic_free(n1);
+	free(g);
 
 	return 0;
 }

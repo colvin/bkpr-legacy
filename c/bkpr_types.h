@@ -37,6 +37,7 @@ typedef struct bkpr_context {
 #define BKPR_SZ_GUEST_GRUBCMD	PATH_MAX
 #define BKPR_SZ_GUEST_DESCR	256
 #define BKPR_SZ_DISK_PATH	PATH_MAX
+#define BKPR_SZ_MAXINDENT	8
 
 typedef enum guest_disk_type {
 	DISK_TYPE_INVAL,
@@ -108,10 +109,10 @@ typedef struct grub_def {
 } grub_def;
 
 typedef struct guest {
-	long unsigned	vmid;
+	unsigned long	vmid;
 	char		name[BKPR_SZ_GUEST_NAME];
 	int		cpu;
-	long unsigned	mem;
+	unsigned long	mem;
 	guest_os	os;
 	guest_loader	loader;
 	grub_def	*grub;
