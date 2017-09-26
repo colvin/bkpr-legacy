@@ -1,12 +1,12 @@
 #include "bkpr.h"
 
-extern bkpr_err_t	*e;
+extern bkpr_context	*ctx;
 
 int
 test(void)
 {
 
-	guest_disk_t	*sp, *disk, *disk1, *disk2, *disk3;
+	guest_disk	*sp, *disk, *disk1, *disk2, *disk3;
 	if ((disk1 = disk_alloc(1)) == NULL)
 		err(ENOMEM,"out of memory");
 	disk1->diskid = 1;
@@ -51,7 +51,7 @@ test(void)
 
 	while (disk != NULL) {
 		disk_dump(disk);
-		disk = disk->n;
+		disk = disk->next;
 	}
 
 	disk = sp;
@@ -65,7 +65,7 @@ test(void)
 	printf("--\n");
 	while (disk != NULL) {
 		disk_dump(disk);
-		disk = disk->n;
+		disk = disk->next;
 	}
 
 	disk_free_all(sp);

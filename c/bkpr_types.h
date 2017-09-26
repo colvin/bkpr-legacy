@@ -9,26 +9,26 @@ typedef enum bkpr_verbosity {
 	BKPR_VERB_DEBUG
 } bkpr_verbosity;
 
-typedef struct bkpr_err_t {
+typedef struct bkpr_err {
 	int	no;
 	char	str[BKPR_SZ_ERRSTR];
-} bkpr_err_t;
+} bkpr_err;
 
 typedef enum bkpr_db_type {
-	BKPR_DBTYPE_INVALID,
+	BKPR_DBTYPE_INVAL,
 	BKPR_DBTYPE_SQLITE,
 	BKPR_DBTYPE_MYSQL
 } bkpr_db_type;
 
-struct bkpr_db_t;	/* forward declaration */
+struct bkpr_db;	/* forward declaration */
 
-typedef struct bkpr_context_t {
+typedef struct bkpr_context {
 	bkpr_verbosity		verbosity;
 	bool			noop;
-	bkpr_err_t		*err;
+	bkpr_err		*err;
 	bkpr_db_type		dbtype;
-	struct bkpr_db_t	*db;
-} bkpr_context_t;
+	struct bkpr_db		*db;
+} bkpr_context;
 
 #define BKPR_SZ_GUEST_NAME	256
 #define BKPR_SZ_GUEST_OS	16
@@ -44,11 +44,11 @@ typedef enum guest_disk_type {
 	DISK_TYPE_ZVOL
 } guest_disk_type;
 
-#define DISK_TYPE_STR_INVAL	"invalid"
+#define DISK_TYPE_STR_INVAL	"*invalid*"
 #define DISK_TYPE_STR_FILE	"file"
 #define DISK_TYPE_STR_ZVOL	"zvol"
 
-typedef struct guest_disk_t {
+typedef struct guest_disk {
 	int			diskid;
 	int			vmid;
 	guest_disk_type		type;
@@ -56,32 +56,74 @@ typedef struct guest_disk_t {
 	int			root;
 	int			cloned;
 	char			cloneof[BKPR_SZ_DISK_PATH];
-	struct guest_disk_t	*p;
-	struct guest_disk_t	*n;
-} guest_disk_t;
+	struct guest_disk	*prev;
+	struct guest_disk	*next;
+} guest_disk;
 
-typedef struct guest_nic_t {
+typedef struct guest_nic {
 	int			nicid;
 	int			vmid;
 	int			tap;
 	int			bridge;
-	struct guest_nic_t	*p;
-	struct guest_nic_t	*n;
-} guest_nic_t;
+	struct guest_nic	*prev;
+	struct guest_nic	*next;
+} guest_nic;
 
-typedef struct guest_t {
-	int		vmid;
+typedef enum guest_os {
+	BKPR_OS_INVAL,
+	BKPR_OS_FREEBSD,
+	BKPR_OS_OPENBSD,
+	BKPR_OS_NETBSD,
+	BKPR_OS_LINUX,
+	BKPR_OS_SUN,
+	BKPR_OS_WINDOWS
+} guest_os;
+
+#define BKPR_OS_STR_INVAL	"*invalid*"
+#define BKPR_OS_STR_FREEBSD	"freebsd"
+#define BKPR_OS_STR_OPENBSD	"openbsd"
+#define BKPR_OS_STR_NETBSD	"netbsd"
+#define BKPR_OS_STR_LINUX	"linux"
+#define BKPR_OS_STR_SUN		"sun"
+#define BKPR_OS_STR_WINDOWS	"windows"
+
+typedef enum guest_loader {
+	BKPR_LOADER_INVAL,
+	BKPR_LOADER_BHYVELOAD,
+	BKPR_LOADER_GRUB,
+	BKPR_LOADER_UEFI,
+	BKPR_LOADER_UEFI_CSM
+} guest_loader;
+
+
+#define BKPR_LOADER_STR_INVAL		"*invalid*"
+#define	BKPR_LOADER_STR_BHYVELOAD	"bhyveload"
+#define	BKPR_LOADER_STR_GRUB		"grub"
+#define	BKPR_LOADER_STR_UEFI		"uefi"
+#define	BKPR_LOADER_STR_UEFI_CSM	"uefi-csm"
+
+typedef struct grub_def {
+	char	map[BKPR_SZ_GUEST_GRUBMAP];
+	char	cmd[BKPR_SZ_GUEST_GRUBCMD];
+} grub_def;
+
+typedef struct guest {
+	long unsigned	vmid;
 	char		name[BKPR_SZ_GUEST_NAME];
 	int		cpu;
-	int		mem;
-	char		os[BKPR_SZ_GUEST_OS];
-	char		loader[BKPR_SZ_GUEST_LOADER];
-	char		grubmap[BKPR_SZ_GUEST_GRUBMAP];
-	char		grubcmd[BKPR_SZ_GUEST_GRUBCMD];
+	long unsigned	mem;
+	guest_os	os;
+	guest_loader	loader;
+	grub_def	*grub;
+	guest_disk	*disk;
+	guest_nic	*nic;
 	char		descr[BKPR_SZ_GUEST_DESCR];
-	guest_disk_t	*disk;
-	guest_nic_t	*nic;
-} guest_t;
+} guest;
 
-#endif
+typedef struct guest_list {
+	guest	*next;
+	guest	*prev;
+	guest	*data;
+} guest_list;
 
+#endif /* BKPR_TYPES_H */

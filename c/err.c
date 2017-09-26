@@ -1,6 +1,6 @@
 #include "bkpr.h"
 
-extern bkpr_context_t	*ctx;
+extern bkpr_context	*ctx;
 
 int
 errset(int n, char *fmt, ...)

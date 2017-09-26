@@ -1,12 +1,12 @@
 #include "bkpr.h"
 
-extern bkpr_context_t	*ctx;
+extern bkpr_context	*ctx;
 
 int
 db_init(void)
 {
 
-	if ((ctx->db = calloc(1,sizeof(bkpr_db_t))) == NULL) {
+	if ((ctx->db = calloc(1,sizeof(bkpr_db))) == NULL) {
 		errset(ENOMEM,"out of memory");
 		return (-1);
 	}

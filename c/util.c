@@ -1,13 +1,13 @@
 #include "bkpr.h"
 
-extern bkpr_context_t	*ctx;
+extern bkpr_context	*ctx;
 
-bkpr_context_t *
+bkpr_context *
 ctx_alloc(void)
 {
-	bkpr_context_t	*p;
+	bkpr_context	*p;
 
-	if ((p = calloc(1,sizeof(bkpr_context_t))) == NULL) {
+	if ((p = calloc(1,sizeof(bkpr_context))) == NULL) {
 		errset(ENOMEM,"out of memory");
 		return (NULL);
 	}
@@ -15,12 +15,12 @@ ctx_alloc(void)
 	return (p);
 }
 
-bkpr_err_t *
+bkpr_err *
 err_alloc(void)
 {
-	bkpr_err_t	*p;
+	bkpr_err	*p;
 
-	if ((p = calloc(1,sizeof(bkpr_err_t))) == NULL) {
+	if ((p = calloc(1,sizeof(bkpr_err))) == NULL) {
 		errset(ENOMEM,"out of memory");
 		return (NULL);
 	}
@@ -28,12 +28,103 @@ err_alloc(void)
 	return (p);
 }
 
-guest_disk_t *
+guest_os
+guest_os_type(char *str)
+{
+	char		*t;
+	guest_os	r;
+
+	if ((str == NULL) || (strlen(str) == 0))
+		return (BKPR_OS_INVAL);
+
+	t = lc(str);
+
+#define OSCMP(x)	(strcmp(t,x) == 0)
+
+	if (OSCMP("freebsd"))
+		r = BKPR_OS_FREEBSD;
+	else if (OSCMP("openbsd"))
+		r = BKPR_OS_OPENBSD;
+	else if (OSCMP("netbsd"))
+		r = BKPR_OS_NETBSD;
+	else if (OSCMP("linux"))
+		r = BKPR_OS_LINUX;
+	else if (OSCMP("sun"))
+		r = BKPR_OS_SUN;
+	else if (OSCMP("windows") || OSCMP("win"))
+		r = BKPR_OS_WINDOWS;
+	else
+		r = BKPR_OS_INVAL;
+
+	free(t);
+
+	return (r);
+}
+
+char	*
+guest_os_type_str(guest_os os)
+{
+
+	switch(os) {
+		case BKPR_OS_FREEBSD:	return (BKPR_OS_STR_FREEBSD);
+		case BKPR_OS_OPENBSD:	return (BKPR_OS_STR_OPENBSD);
+		case BKPR_OS_NETBSD:	return (BKPR_OS_STR_NETBSD);
+		case BKPR_OS_LINUX:	return (BKPR_OS_STR_LINUX);
+		case BKPR_OS_SUN:	return (BKPR_OS_STR_SUN);
+		case BKPR_OS_WINDOWS:	return (BKPR_OS_STR_WINDOWS);
+		case BKPR_OS_INVAL:
+		default:		return (BKPR_OS_STR_INVAL);
+	}
+}
+
+guest_loader
+guest_loader_type(char *in)
+{
+	char		*t;
+	guest_loader	r;
+
+	if ((in == NULL) || (strlen(in) == 0))
+		return (BKPR_LOADER_INVAL);
+
+	t = lc(in);
+
+#define LDCMP(x)	(strcmp(t,x) == 0)
+
+	if (LDCMP("bhyveload"))
+		return (BKPR_LOADER_BHYVELOAD);
+	else if (LDCMP("grub"))
+		return (BKPR_LOADER_GRUB);
+	else if (LDCMP("uefi"))
+		return (BKPR_LOADER_UEFI);
+	else if (LDCMP("uefi-csm"))
+		return (BKPR_LOADER_UEFI_CSM);
+	else
+		return (BKPR_LOADER_INVAL);
+
+	free(t);
+	return (r);
+}
+
+char *
+guest_loader_type_str(guest_loader ld)
+{
+
+	switch(ld) {
+		case BKPR_LOADER_BHYVELOAD:	return (BKPR_LOADER_STR_BHYVELOAD);
+		case BKPR_LOADER_GRUB:		return (BKPR_LOADER_STR_GRUB);
+		case BKPR_LOADER_UEFI:		return (BKPR_LOADER_STR_UEFI);
+		case BKPR_LOADER_UEFI_CSM:	return (BKPR_LOADER_STR_UEFI_CSM);
+		case BKPR_LOADER_INVAL:
+		default:			return (BKPR_LOADER_STR_INVAL);
+	}
+}
+
+guest_disk *
 disk_alloc(int n)
 {
-	guest_disk_t	*d;
+	guest_disk	*d;
 
-	if ((d = calloc(n,sizeof(guest_disk_t))) == NULL) {
+	if ((d = calloc(n,sizeof(guest_disk))) == NULL) {
 		errset(ENOMEM,"out of memory");
 		return (NULL);
 	}
@@ -42,7 +133,7 @@ disk_alloc(int n)
 }
 
 void
-disk_free(guest_disk_t *d)
+disk_free(guest_disk *d)
 {
 	if (d != NULL)
 		free(d);
@@ -50,58 +141,58 @@ disk_free(guest_disk_t *d)
 }
 
 void
-disk_free_all(guest_disk_t *d)
+disk_free_all(guest_disk *d)
 {
-	guest_disk_t	*t;
+	guest_disk	*t;
 
 	while (d != NULL) {
-		t = d->n;
+		t = d->next;
 		disk_free(d);
 		d = t;
 	}
 }
 
 void
-disk_list_attach(guest_disk_t *lst, guest_disk_t *new)
+disk_list_attach(guest_disk *lst, guest_disk *new)
 {
-	guest_disk_t	*tn, *tp;
+	guest_disk	*tn, *tp;
 
 	tn = lst;
 	tp = NULL;
 	while (tn != NULL) {
 		tp = tn;
-		tn = tn->n;
+		tn = tn->next;
 	}
-	new->p = tp;
-	new->p->n = new;
+	new->prev = tp;
+	new->prev->next = new;
 }
 
-guest_disk_t *
-disk_list_remove(guest_disk_t *lst, char *path)
+guest_disk *
+disk_list_remove(guest_disk *lst, char *path)
 {
-	guest_disk_t	*t;
+	guest_disk	*t;
 
 	if ((t = disk_list_find(lst,path)) == NULL)
 		return (lst);
 
 	if (t == lst) {			/* first node */
-		lst = lst->n;
-		lst->p = NULL;
-	} else if (t->n == NULL) {	/* last node */
-		t->p->n = NULL;
+		lst = lst->next;
+		lst->prev = NULL;
+	} else if (t->next == NULL) {	/* last node */
+		t->prev->next = NULL;
 	} else {
-		t->p->n = t->n;
-		t->n->p = t->p;
+		t->prev->next = t->next;
+		t->next->prev = t->prev;
 	}
 	disk_free(t);
 
 	return (lst);
 }
 
-guest_disk_t *
-disk_list_find(guest_disk_t *lst, char *path)
+guest_disk *
+disk_list_find(guest_disk *lst, char *path)
 {
-	guest_disk_t	*t;
+	guest_disk	*t;
 	int		f = 0;
 
 	t = lst;
@@ -110,7 +201,7 @@ disk_list_find(guest_disk_t *lst, char *path)
 			f = 1;
 			break;
 		}
-		t = t->n;
+		t = t->next;
 	}
 
 	if (f)
@@ -120,7 +211,7 @@ disk_list_find(guest_disk_t *lst, char *path)
 }
 
 void
-disk_dump(guest_disk_t *d)
+disk_dump(guest_disk *d)
 {
 
 	if (d == NULL) {
@@ -171,12 +262,12 @@ disk_type(char *str)
 
 /* nics */
 
-guest_nic_t *
+guest_nic *
 nic_alloc(int c)
 {
-	guest_nic_t	*n;
+	guest_nic	*n;
 
-	if ((n = calloc(c,sizeof(guest_nic_t))) == NULL) {
+	if ((n = calloc(c,sizeof(guest_nic))) == NULL) {
 		errset(ENOMEM,"out of memory");
 		return (NULL);
 	}
@@ -185,7 +276,7 @@ nic_alloc(int c)
 }
 
 void
-nic_free(guest_nic_t *n)
+nic_free(guest_nic *n)
 {
 	if (n != NULL)
 		free(n);
@@ -193,60 +284,60 @@ nic_free(guest_nic_t *n)
 }
 
 void
-nic_free_all(guest_nic_t *lst)
+nic_free_all(guest_nic *lst)
 {
-	guest_nic_t *t;
+	guest_nic *t;
 
 	t = lst;
 	while (lst != NULL) {
-		t = lst->n;
+		t = lst->next;
 		nic_free(lst);
 		lst = t;
 	}
 }
 
 void
-nic_list_attach(guest_nic_t *lst, guest_nic_t *new)
+nic_list_attach(guest_nic *lst, guest_nic *new)
 {
-	guest_nic_t	*tn, *tp;
+	guest_nic	*tn, *tp;
 
 	tn = lst;
 	tp = NULL;
 	while (tn != NULL) {
 		tp = tn;
-		tn = tn->n;
+		tn = tn->next;
 	}
-	new->p = tp;
-	new->p->n = new;
+	new->prev = tp;
+	new->prev->next = new;
 }
 
-guest_nic_t *
-nic_list_remove(guest_nic_t *lst, int tap)
+guest_nic *
+nic_list_remove(guest_nic *lst, int tap)
 {
-	guest_nic_t	*t;
+	guest_nic	*t;
 
 	if ((t = nic_list_find(lst,tap)) == NULL)
 		return (lst);
 
 	if (t == lst) {			/* first node */
-		lst = lst->n;
+		lst = lst->next;
 		if (lst != NULL)
-			lst->p = NULL;
-	} else if (t->n == NULL) {	/* last node */
-		t->p->n = NULL;
+			lst->prev = NULL;
+	} else if (t->next == NULL) {	/* last node */
+		t->prev->next = NULL;
 	} else {
-		t->p->n = t->n;
-		t->n->p = t->p;
+		t->prev->next = t->next;
+		t->next->prev = t->prev;
 	}
 	nic_free(t);
 
 	return (lst);
 }
 
-guest_nic_t *
-nic_list_find(guest_nic_t *lst, int tap)
+guest_nic *
+nic_list_find(guest_nic *lst, int tap)
 {
-	guest_nic_t	*t;
+	guest_nic	*t;
 	int		f = 0;
 
 	t = lst;
@@ -255,7 +346,7 @@ nic_list_find(guest_nic_t *lst, int tap)
 			f = 1;
 			break;
 		}
-		t = t->n;
+		t = t->next;
 	}
 
 	if (f)
@@ -265,7 +356,7 @@ nic_list_find(guest_nic_t *lst, int tap)
 }
 
 void
-nic_dump(guest_nic_t *n)
+nic_dump(guest_nic *n)
 {
 	if (n == NULL) {
 		printf("nic { }\n");
@@ -292,7 +383,7 @@ db_type(char *str)
 	else if (DBTYPECMP("mysql"))
 		return (BKPR_DBTYPE_MYSQL);
 	else
-		return (BKPR_DBTYPE_INVALID);
+		return (BKPR_DBTYPE_INVAL);
 }
 
 char * /* must free */
@@ -301,7 +392,7 @@ db_type_str(bkpr_db_type type)
 	char	*str;
 
 	switch(type) {
-		case BKPR_DBTYPE_INVALID:
+		case BKPR_DBTYPE_INVAL:
 			str = strdup("invalid");
 			break;
 		case BKPR_DBTYPE_SQLITE:
@@ -338,5 +429,22 @@ chomp(char *str)
 	}
 
 	return (c);
+}
+
+char *	/* must free */
+lc(char *in)
+{
+	int	c;
+	char	*out;
+
+	if ((in == NULL) || (strlen(in) == 0))
+		return (NULL);
+
+	out = strdup(in);
+
+	for (int i = 0; i < strlen(in); i++)
+		out[i] = tolower(out[i]);
+
+	return (out);
 }
 

@@ -13,12 +13,12 @@
 #define DBCONN	MYSQL
 #endif /* DB_MYSQL */
 
-typedef struct bkpr_db_t {
+typedef struct bkpr_db {
 	DBCONN		*conn;
 #ifdef DB_SQLITE
 	char		*path;
 #endif /* DB_SQLITE */
-} bkpr_db_t;
+} bkpr_db;
 
 bkpr_db_type	db_type(char *);
 char		*db_type_str(bkpr_db_type);

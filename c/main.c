@@ -2,7 +2,7 @@
 
 #define OPCMP(x)	(strcmp(operation,x) == 0)
 
-bkpr_context_t	*ctx;
+bkpr_context	*ctx;
 
 int
 main(int argc, char *argv[])
