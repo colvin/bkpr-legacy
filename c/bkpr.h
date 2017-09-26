@@ -36,6 +36,7 @@ guest_os	 guest_os_type(char *);
 char		*guest_os_type_str(guest_os);
 
 guest_loader	 guest_loader_type(char *);
+char		*guest_loader_type_str(guest_loader);
 
 guest_disk	*disk_alloc(int);
 void		 disk_free(guest_disk *);
@@ -59,4 +60,3 @@ int		 chomp(char *);
 char		*lc(char *); /* must free */
 
 #endif /* BKPR_H */
-
