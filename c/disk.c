@@ -35,6 +35,44 @@ disk_free_all(guest_disk *d)
 	}
 }
 
+guest_disk *
+disk_spec(char *spec)
+{
+	guest_disk	*d;
+	char		*type, *path, *size;
+
+	if (spec == NULL) {
+		errset(EINVAL,"disk_spec(): no spec provided");
+		return (NULL);
+	}
+
+	if (strstr(spec,"::") == NULL) {
+		errset(EINVAL,"invalid disk spec");
+		return NULL;
+	}
+
+	if ((d = disk_alloc()) == NULL) {
+		errset(ENOMEM,"out of memory");
+		return (NULL);
+	}
+
+	type = strtok(spec,"::");
+	if ((d->type = disk_type(type)) == DISK_TYPE_INVAL) {
+		errset(EINVAL,"invalid disk type: %s",type);
+		disk_free(d);
+		return (NULL);
+	}
+
+	path = strtok(NULL,"::");
+	snprintf(d->path,sizeof(d->path),"%s",path);
+
+	size = strtok(NULL,"::");
+	if (size != NULL)
+		d->size = strtol(size,NULL,0);
+
+	return (d);
+}
+
 void
 disk_list_attach(guest_disk *lst, guest_disk *new)
 {
@@ -112,6 +150,8 @@ disk_dump(int lvl, guest_disk *d)
 	printf("%s\t%-8s %d\n",ind,"diskid",d->diskid);
 	printf("%s\t%-8s %s\n",ind,"type",disk_type_str(d->type));
 	printf("%s\t%-8s %s\n",ind,"path",d->path);
+	if (d->size)
+		printf("%s\t%-8s %d GiB\n",ind,"size",d->size);
 	printf("%s\t%-8s %d\n",ind,"root",d->root);
 	printf("%s\t%-8s %d\n",ind,"cloned",d->cloned);
 	if (d->cloned)
@@ -132,7 +172,10 @@ disk_dump_simple(int lvl, guest_disk *d)
 	for (int i = 0; ((i < lvl) && (i < sizeof(ind))); i++)
 		ind[i] = '\t';
 
-	printf("%s %s::%s\n",ind,disk_type_str(d->type),d->path);
+	if (d->root)
+		printf("%s %s::%s (root)\n",ind,disk_type_str(d->type),d->path);
+	else
+		printf("%s %s::%s\n",ind,disk_type_str(d->type),d->path);
 }
 
 char *

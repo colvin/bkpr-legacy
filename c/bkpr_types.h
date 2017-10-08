@@ -57,6 +57,7 @@ typedef struct guest_disk {
 	int			root;
 	int			cloned;
 	char			cloneof[BKPR_SZ_DISK_PATH];
+	int			size;	/* only used when creating a disk */
 	struct guest_disk	*prev;
 	struct guest_disk	*next;
 } guest_disk;

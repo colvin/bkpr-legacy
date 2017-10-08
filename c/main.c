@@ -90,6 +90,9 @@ main(int argc, char *argv[])
 		exit(EINVAL);
 	}
 
+	if (r != EXIT_SUCCESS)
+		errprint();
+
 	free(operation);
 	db_disconnect();
 

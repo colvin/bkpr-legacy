@@ -16,6 +16,20 @@ guest_alloc(void)
 }
 
 void
+guest_free(guest *g)
+{
+
+	if (g == NULL)
+		return;
+
+	if (g->disk != NULL)
+		disk_free_all(g->disk);
+	if (g->nic != NULL)
+		nic_free_all(g->nic);
+	free(g);
+}
+
+void
 guest_dump(guest *g)
 {
 	guest_disk	*disk;
@@ -38,9 +52,9 @@ guest_dump(guest *g)
 	printf("\t%-8s %s\n","loader",guest_loader_type_str(g->loader));
 
 	if (disk == NULL)
-		printf("\t%-8s { }\n","disks");
+		printf("\tdisks { }\n");
 	else {
-		printf("\t%-8s {\n","disks");
+		printf("\tdisks {\n");
 		do {
 			disk_dump_simple(2,disk);
 			if (disk)
@@ -50,9 +64,9 @@ guest_dump(guest *g)
 	}
 
 	if (nic == NULL)
-		printf("\t%-8s { }\n","nics");
+		printf("\tnics { }\n");
 	else {
-		printf("\t%-8s {\n","nics");
+		printf("\tnics {\n");
 		do {
 			nic_dump_simple(2,nic);
 			if (nic)

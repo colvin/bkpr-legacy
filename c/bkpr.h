@@ -34,6 +34,7 @@ void		 complain(char *, ...);
 #define UNIMP(x)	complain("unimplemented: %s",x)
 
 guest		*guest_alloc(void);
+void		 guest_free(guest *);
 void		 guest_dump(guest *);
 guest_os	 guest_os_type(char *);
 char		*guest_os_type_str(guest_os);
@@ -43,6 +44,7 @@ char		*guest_loader_type_str(guest_loader);
 guest_disk	*disk_alloc(void);
 void		 disk_free(guest_disk *);
 void		 disk_free_all(guest_disk *);
+guest_disk	*disk_spec(char *);
 void		 disk_list_attach(guest_disk *, guest_disk *);
 guest_disk	*disk_list_remove(guest_disk *, char *);
 guest_disk	*disk_list_find(guest_disk *, char *);
