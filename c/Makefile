@@ -3,6 +3,9 @@ MAN	=
 SRCS	= main.c\
 	  util.c\
 	  err.c\
+	  guest.c\
+	  disk.c\
+	  nic.c\
 	  create.c\
 	  test.c
 

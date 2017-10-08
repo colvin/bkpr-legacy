@@ -35,10 +35,8 @@ void		 complain(char *, ...);
 
 guest		*guest_alloc(void);
 void		 guest_dump(guest *);
-
 guest_os	 guest_os_type(char *);
 char		*guest_os_type_str(guest_os);
-
 guest_loader	 guest_loader_type(char *);
 char		*guest_loader_type_str(guest_loader);
 
