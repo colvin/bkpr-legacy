@@ -53,9 +53,14 @@ void		 disk_dump_simple(int, guest_disk *);
 char		*disk_type_str(guest_disk_type);
 guest_disk_type	 disk_type(char *);
 
+#define BKPR_DEFAULT_BRIDGE	0
+
 guest_nic	*nic_alloc(void);
 void		 nic_free(guest_nic *);
 void		 nic_free_all(guest_nic *);
+guest_nic	*nic_spec(char *);
+guest_nic	*nic_spec_auto(void);
+int		 nic_next_tapid(void);
 void		 nic_list_attach(guest_nic *, guest_nic *);
 guest_nic	*nic_list_remove(guest_nic *, int);
 guest_nic	*nic_list_find(guest_nic *, int);
@@ -64,5 +69,6 @@ void		 nic_dump_simple(int, guest_nic *);
 
 int		 chomp(char *);
 char		*lc(char *); /* must free */
+int		str_isnumber(char *);
 
 #endif /* BKPR_H */

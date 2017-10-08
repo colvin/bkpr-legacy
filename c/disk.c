@@ -67,8 +67,15 @@ disk_spec(char *spec)
 	snprintf(d->path,sizeof(d->path),"%s",path);
 
 	size = strtok(NULL,"::");
-	if (size != NULL)
-		d->size = strtol(size,NULL,0);
+	if (size != NULL) {
+		if (str_isnumber(size))
+			d->size = strtol(size,NULL,0);
+		else {
+			errset(EINVAL,"disk size is not a number");
+			disk_free(d);
+			return (NULL);
+		}
+	}
 
 	return (d);
 }

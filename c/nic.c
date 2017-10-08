@@ -36,6 +36,74 @@ nic_free_all(guest_nic *lst)
 	}
 }
 
+guest_nic *
+nic_spec(char *spec)
+{
+	char		*br, *tp;
+	guest_nic	*n;
+
+	if ((spec == NULL) || (strcmp(spec,"auto") == 0) || (strcmp(spec,"::") == 0))
+		return nic_spec_auto();
+
+	if (strstr(spec,"::") == NULL) {
+		errset(EINVAL,"invalid spec string");
+		return (NULL);
+	}
+
+	if ((n = nic_alloc()) == NULL)
+		return (NULL);
+
+	br = strtok(spec,"::");
+	if (str_isnumber(br))
+		n->bridge = strtol(br,NULL,0);
+	else {
+		errset(EINVAL,"bridgeid is not a number");
+		nic_free(n);
+		return (NULL);
+	}
+
+	tp = strtok(NULL,"::");
+	if (strcmp(tp,"auto") == 0)
+		n->tap = nic_next_tapid();
+	else {
+		if (str_isnumber(tp))
+			n->tap = strtol(tp,NULL,0);
+		else {
+			errset(EINVAL,"tapid is not a number");
+			nic_free(n);
+			return (NULL);
+		}
+	}
+
+	return (n);
+}
+
+guest_nic *
+nic_spec_auto(void)
+{
+	guest_nic	*n;
+
+	if ((n = nic_alloc()) == NULL)
+		return (NULL);
+
+	n->bridge = BKPR_DEFAULT_BRIDGE;
+	n->tap = nic_next_tapid();
+
+	return (n);
+}
+
+int
+nic_next_tapid(void)
+{
+	int	r;
+
+	/* TODO */
+	srand(getpid());
+	r = rand();
+
+	return (r);
+}
+
 void
 nic_list_attach(guest_nic *lst, guest_nic *new)
 {

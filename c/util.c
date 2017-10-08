@@ -105,3 +105,20 @@ lc(char *in)
 	return (out);
 }
 
+int
+str_isnumber(char *str)
+{
+	size_t	len;
+
+	if (str == NULL)
+		return 0;
+
+	len = strlen(str);
+	for (int i = 0; i < len; i++) {
+		if (isnumber(str[i]) == 0)
+			return 0;
+	}
+
+	return 1;
+}
+
