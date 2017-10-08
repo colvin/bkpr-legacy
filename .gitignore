@@ -1,0 +1,7 @@
+.depend*
+*.o
+*.tar
+*.tar.gz
+*.tgz
+work
+*.core
