@@ -34,24 +34,24 @@ create(int argc, char **argv)
 				if (rflag) {
 					errset(EINVAL,"must have exactly one root disk");
 					guest_free(g);
-					return (EXIT_FAILURE);
+					return (BKPR_BAD);
 				}
-				if (create_disk_add(g,optarg,1) != EXIT_SUCCESS) {
+				if (create_disk_add(g,optarg,1) != BKPR_GOOD) {
 					guest_free(g);
-					return (EXIT_FAILURE);
+					return (BKPR_BAD);
 				}
 				rflag = 1;
 				break;
 			case 'd':
-				if (create_disk_add(g,optarg,0) != EXIT_SUCCESS) {
+				if (create_disk_add(g,optarg,0) != BKPR_GOOD) {
 					guest_free(g);
-					return (EXIT_FAILURE);
+					return (BKPR_BAD);
 				}
 				break;
 			case 'N':
-				if (create_nic_add(g,optarg) != EXIT_SUCCESS) {
+				if (create_nic_add(g,optarg) != BKPR_GOOD) {
 					guest_free(g);
-					return (EXIT_FAILURE);
+					return (BKPR_BAD);
 				}
 				break;
 			case 'D':
@@ -70,13 +70,13 @@ create(int argc, char **argv)
 	if (rflag == 0) {
 		errset(EINVAL,"must have exactly one root disk");
 		guest_free(g);
-		return (EXIT_FAILURE);
+		return (BKPR_BAD);
 	}
 
 	guest_dump(g);
 
 	guest_free(g);
-	return (EXIT_SUCCESS);
+	return (BKPR_GOOD);
 }
 
 int
@@ -86,15 +86,15 @@ create_disk_add(guest *g, char *spec, int root)
 
 	if (g == NULL) {
 		errset(EINVAL,"create_disk_add(): guest is NULL");
-		return (EXIT_FAILURE);
+		return (BKPR_BAD);
 	}
 	if (spec == NULL) {
 		errset(EINVAL,"create_disk_add(): disk spec is NULL");
-		return (EXIT_FAILURE);
+		return (BKPR_BAD);
 	}
 
 	if ((d = disk_spec(spec)) == NULL)
-		return (EXIT_FAILURE);
+		return (BKPR_BAD);
 
 	if (root)
 		d->root = 1;
@@ -106,7 +106,7 @@ create_disk_add(guest *g, char *spec, int root)
 	else
 		disk_list_attach(g->disk,d);
 
-	return (EXIT_SUCCESS);
+	return (BKPR_GOOD);
 }
 
 int
@@ -116,15 +116,15 @@ create_nic_add(guest *g, char *spec)
 
 	if (g == NULL) {
 		errset(EINVAL,"create_nic_add(): guest is NULL");
-		return (EXIT_FAILURE);
+		return (BKPR_BAD);
 	}
 	if (spec == NULL) {
 		errset(EINVAL,"create_nic_add(): disk spec is NULL");
-		return (EXIT_FAILURE);
+		return (BKPR_BAD);
 	}
 
 	if ((n = nic_spec(spec)) == NULL)
-		return (EXIT_FAILURE);
+		return (BKPR_BAD);
 
 	nic_dump(0,n);
 
@@ -133,6 +133,6 @@ create_nic_add(guest *g, char *spec)
 	else
 		nic_list_attach(g->nic,n);
 
-	return (EXIT_SUCCESS);
+	return (BKPR_GOOD);
 }
 

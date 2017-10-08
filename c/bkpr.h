@@ -14,6 +14,9 @@
 
 #define BKPR_VERSION	"0.0"
 
+#define BKPR_GOOD	EXIT_SUCCESS
+#define BKPR_BAD	EXIT_FAILURE
+
 #include "bkpr_types.h"
 #include "bkpr_db.h"
 

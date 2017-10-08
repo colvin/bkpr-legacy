@@ -56,15 +56,15 @@ main(int argc, char *argv[])
 	if (OPCMP("help")) {
 		free(operation);
 		usage();
-		exit(EXIT_SUCCESS);
+		exit(BKPR_GOOD);
 	}
 
 	if (db_init()) {
 		errprint();
-		exit(EXIT_FAILURE);
+		exit(BKPR_BAD);
 	}
 
-	r = EXIT_FAILURE;
+	r = BKPR_BAD;
 
 	if (OPCMP("list"))
 		UNIMP("list");
@@ -90,7 +90,7 @@ main(int argc, char *argv[])
 		exit(EINVAL);
 	}
 
-	if (r != EXIT_SUCCESS)
+	if (r != BKPR_GOOD)
 		errprint();
 
 	free(operation);
