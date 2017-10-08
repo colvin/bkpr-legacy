@@ -28,6 +28,19 @@ err_alloc(void)
 	return (p);
 }
 
+guest *
+guest_alloc(void)
+{
+	guest	*g;
+
+	if ((g = calloc(1,sizeof(guest))) == NULL) {
+		errset(ENOMEM,"out of memory");
+		return (NULL);
+	}
+
+	return (g);
+}
+
 void
 guest_dump(guest *g)
 {
@@ -50,20 +63,32 @@ guest_dump(guest *g)
 	printf("\t%-8s %s\n","os",guest_os_type_str(g->os));
 	printf("\t%-8s %s\n","loader",guest_loader_type_str(g->loader));
 
-	do {
-		disk_dump(1,disk);
-		if (disk)
-			disk = disk->next;
-	} while (disk != NULL);
+	if (disk == NULL)
+		printf("\t%-8s { }\n","disks");
+	else {
+		printf("\t%-8s {\n","disks");
+		do {
+			disk_dump_simple(2,disk);
+			if (disk)
+				disk = disk->next;
+		} while (disk != NULL);
+		printf("\t}\n");
+	}
 
-	do {
-		nic_dump(1,nic);
-		if (nic)
-			nic = nic->next;
-	} while (nic != NULL);
+	if (nic == NULL)
+		printf("\t%-8s { }\n","nics");
+	else {
+		printf("\t%-8s {\n","nics");
+		do {
+			nic_dump_simple(2,nic);
+			if (nic)
+				nic = nic->next;
+		} while (nic != NULL);
+		printf("\t}\n");
+	}
 
 	printf("\t%-8s %s\n","descr",g->descr);
-	printf("\t%-8s %p\n","addr",g);
+	//printf("\t%-8s %p\n","addr",g);
 	printf("}\n");
 }
 
@@ -159,11 +184,11 @@ guest_loader_type_str(guest_loader ld)
 }
 
 guest_disk *
-disk_alloc(int n)
+disk_alloc(void)
 {
 	guest_disk	*d;
 
-	if ((d = calloc(n,sizeof(guest_disk))) == NULL) {
+	if ((d = calloc(1,sizeof(guest_disk))) == NULL) {
 		errset(ENOMEM,"out of memory");
 		return (NULL);
 	}
@@ -272,8 +297,23 @@ disk_dump(int lvl, guest_disk *d)
 	printf("%s\t%-8s %d\n",ind,"cloned",d->cloned);
 	if (d->cloned)
 		printf("%s\t%-8s %s\n",ind,"cloneof",d->cloneof);
-	printf("%s\t%-8s %p\n",ind,"addr",d);
+	//printf("%s\t%-8s %p\n",ind,"addr",d);
 	printf("%s}\n",ind);
+}
+
+void
+disk_dump_simple(int lvl, guest_disk *d)
+{
+	char	ind[BKPR_SZ_MAXINDENT];
+
+	if (d == NULL)
+		return;
+
+	memset(ind,'\0',sizeof(ind));
+	for (int i = 0; ((i < lvl) && (i < sizeof(ind))); i++)
+		ind[i] = '\t';
+
+	printf("%s %s::%s\n",ind,disk_type_str(d->type),d->path);
 }
 
 char *
@@ -307,11 +347,11 @@ disk_type(char *str)
 /* nics */
 
 guest_nic *
-nic_alloc(int c)
+nic_alloc(void)
 {
 	guest_nic	*n;
 
-	if ((n = calloc(c,sizeof(guest_nic))) == NULL) {
+	if ((n = calloc(1,sizeof(guest_nic))) == NULL) {
 		errset(ENOMEM,"out of memory");
 		return (NULL);
 	}
@@ -418,8 +458,23 @@ nic_dump(int lvl, guest_nic *n)
 	printf("%s\t%-8s %d\n",ind,"vmid",n->vmid);
 	printf("%s\t%-8s %d\n",ind,"tap",n->tap);
 	printf("%s\t%-8s %d\n",ind,"bridge",n->bridge);
-	printf("%s\t%-8s %p\n",ind,"addr",n);
+	//printf("%s\t%-8s %p\n",ind,"addr",n);
 	printf("%s}\n",ind);
+}
+
+void
+nic_dump_simple(int lvl, guest_nic *n)
+{
+	char	ind[BKPR_SZ_MAXINDENT];
+
+	if (n == NULL)
+		return;
+
+	memset(ind,'\0',sizeof(ind));
+	for (int i = 0; ((i < lvl) && (i < sizeof(ind))); i++)
+		ind[i] = '\t';
+
+	printf("%s bridge%d::tap%d\n",ind,n->bridge,n->tap);
 }
 
 bkpr_db_type

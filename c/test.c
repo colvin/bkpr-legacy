@@ -7,7 +7,7 @@ test(void)
 {
 	guest		*g;
 	guest_nic	*n1;
-	guest_disk	*d1;
+	guest_disk	*d1, *d2;
 
 	if ((g = calloc(1,sizeof(guest))) == NULL)
 		return (ENOMEM);
@@ -27,18 +27,27 @@ test(void)
 	n1->tap = 0;
 	g->nic = n1;
 
-	d1 = calloc(1,sizeof(guest_disk));
+	d1 = disk_alloc();
 	d1->diskid = 1;
 	d1->vmid = 1;
 	d1->type = DISK_TYPE_ZVOL;
 	snprintf(d1->path,sizeof(d1->path),"%s","tank/vol/foo");
 	d1->root = 1;
+
 	g->disk = d1;
+
+	d2 = disk_alloc();
+	d2->diskid = 2;
+	d2->vmid = 1;
+	d2->type = DISK_TYPE_FILE;
+	snprintf(d2->path,sizeof(d2->path),"%s","/bkpr/foomatic/disk2.img");
+	d2->root = 0;
+	disk_list_attach(g->disk,d2);
 
 	guest_dump(g);
 
-	disk_free(d1);
-	nic_free(n1);
+	disk_free_all(g->disk);
+	nic_free_all(g->nic);
 	free(g);
 
 	return 0;

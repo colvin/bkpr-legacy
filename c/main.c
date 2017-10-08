@@ -71,7 +71,7 @@ main(int argc, char *argv[])
 	else if (OPCMP("status"))
 		UNIMP("status");
 	else if (OPCMP("create"))
-		UNIMP("create");
+		r = create(argc, argv);
 	else if (OPCMP("run"))
 		UNIMP("run");
 	else if (OPCMP("kill"))
