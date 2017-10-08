@@ -1,22 +1,26 @@
 #include "bkpr.h"
 
+extern bkpr_context	*ctx;
+
 int	create_disk_add(guest *, char *, int);
 int	create_nic_add(guest *, char *);
 
 int
 create(int argc, char **argv)
 {
-	int ch, rflag;
+	int ch, nflag, rflag, oflag, lflag;
 	guest	*g;
 
 	if ((g = guest_alloc()) == NULL)
 		return (ENOMEM);
 
-	rflag = 0;
+	nflag = rflag = oflag = lflag = 0;
+	optreset = optind = 1;
 	while ((ch = getopt(argc,argv,"n:c:m:o:l:r:d:N:D:")) != -1) {
 		switch(ch) {
 			case 'n':
 				snprintf(g->name,sizeof(g->name),"%s",optarg);
+				nflag = 1;
 				break;
 			case 'c':
 				g->cpu = strtol(optarg,NULL,0);
@@ -26,9 +30,11 @@ create(int argc, char **argv)
 				break;
 			case 'o':
 				g->os = guest_os_type(optarg);
+				oflag = 1;
 				break;
 			case 'l':
 				g->loader = guest_loader_type(optarg);
+				lflag = 1;
 				break;
 			case 'r':
 				if (rflag) {
@@ -67,10 +73,32 @@ create(int argc, char **argv)
 	argv += optind;
 	argc -= optind;
 
-	if (rflag == 0) {
+	if (!nflag) {
+		errset(EINVAL,"must have a guest name");
+		guest_free(g);
+		return (EINVAL);
+	}
+
+	if (!rflag) {
 		errset(EINVAL,"must have exactly one root disk");
 		guest_free(g);
-		return (BKPR_BAD);
+		return (EINVAL);
+	}
+
+	if (g->cpu == 0)
+		g->cpu = GUEST_DEFAULT_CPU;
+	if (g->mem == 0)
+		g->mem = GUEST_DEFAULT_MEM;
+	if (!oflag)
+		g->os = BKPR_OS_FREEBSD;
+	if (!lflag) {
+		if (!oflag)
+			g->loader = BKPR_LOADER_BHYVELOAD;
+		else {
+			errset(EINVAL,"must give a loader if not using os default");
+			guest_free(g);
+			return (EINVAL);
+		}
 	}
 
 	guest_dump(g);
@@ -99,7 +127,8 @@ create_disk_add(guest *g, char *spec, int root)
 	if (root)
 		d->root = 1;
 
-	disk_dump(0,d);
+	if (DODBG())
+		disk_dump(0,d);
 
 	if (g->disk == NULL)
 		g->disk = d;
@@ -126,7 +155,8 @@ create_nic_add(guest *g, char *spec)
 	if ((n = nic_spec(spec)) == NULL)
 		return (BKPR_BAD);
 
-	nic_dump(0,n);
+	if (DODBG())
+		nic_dump(0,n);
 
 	if (g->nic == NULL)
 		g->nic = n;

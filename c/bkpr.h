@@ -35,6 +35,12 @@ void		 errprint(void);
 void		 complain(char *, ...);
 
 #define UNIMP(x)	complain("unimplemented: %s",x)
+#define DODBG()		(ctx->verbosity == BKPR_VERB_DEBUG)
+
+#define GUEST_DEFAULT_CPU	1
+#define GUEST_DEFAULT_MEM	1024
+#define GUEST_DEFAULT_OS	"freebsd"
+#define GUEST_DEFAULT_LOADER	"bhyveload"
 
 guest		*guest_alloc(void);
 void		 guest_free(guest *);
