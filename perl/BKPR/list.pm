@@ -43,7 +43,7 @@ sub list {
 				case 'loader'	{}
 				case 'root'	{}
 				case 'disk'	{}
-				#case 'net'	{}
+				case 'descr'	{}
 				else {
 					$self->err_set("invalid match key: $k");
 					return 0;
