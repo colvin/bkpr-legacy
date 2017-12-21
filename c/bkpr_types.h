@@ -22,7 +22,17 @@ typedef enum bkpr_db_type {
 
 struct bkpr_db;	/* forward declaration */
 
+typedef struct bkpr_cfg {
+	char	*prefix;
+	char	*zprefix;
+#ifdef DB_SQLITE
+	char	*sqlite;
+#endif
+} bkpr_cfg;
+
 typedef struct bkpr_context {
+	char			*cfgfile;
+	bkpr_cfg		*cfg;
 	bkpr_verbosity		verbosity;
 	bool			noop;
 	bkpr_err		*err;
@@ -50,8 +60,8 @@ typedef enum guest_disk_type {
 #define DISK_TYPE_STR_ZVOL	"zvol"
 
 typedef struct guest_disk {
-	int			diskid;
-	int			vmid;
+	int			disk_id;
+	int			guest_id;
 	guest_disk_type		type;
 	char			path[BKPR_SZ_DISK_PATH];
 	int			root;
@@ -63,8 +73,8 @@ typedef struct guest_disk {
 } guest_disk;
 
 typedef struct guest_nic {
-	int			nicid;
-	int			vmid;
+	int			nic_id;
+	int			guest_id;
 	int			tap;
 	int			bridge;
 	struct guest_nic	*prev;
@@ -97,7 +107,6 @@ typedef enum guest_loader {
 	BKPR_LOADER_UEFI_CSM
 } guest_loader;
 
-
 #define BKPR_LOADER_STR_INVAL		"*invalid*"
 #define	BKPR_LOADER_STR_BHYVELOAD	"bhyveload"
 #define	BKPR_LOADER_STR_GRUB		"grub"
@@ -110,7 +119,7 @@ typedef struct grub_def {
 } grub_def;
 
 typedef struct guest {
-	unsigned long	vmid;
+	unsigned long	guest_id;
 	char		name[BKPR_SZ_GUEST_NAME];
 	int		cpu;
 	unsigned long	mem;

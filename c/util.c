@@ -7,10 +7,8 @@ ctx_alloc(void)
 {
 	bkpr_context	*p;
 
-	if ((p = calloc(1,sizeof(bkpr_context))) == NULL) {
-		errset(ENOMEM,"out of memory");
+	if ((p = calloc(1,sizeof(bkpr_context))) == NULL)
 		return (NULL);
-	}
 
 	return (p);
 }
@@ -20,12 +18,33 @@ err_alloc(void)
 {
 	bkpr_err	*p;
 
-	if ((p = calloc(1,sizeof(bkpr_err))) == NULL) {
-		errset(ENOMEM,"out of memory");
+	if ((p = calloc(1,sizeof(bkpr_err))) == NULL)
 		return (NULL);
-	}
 
 	return (p);
+}
+
+bkpr_cfg *
+cfg_alloc(void)
+{
+	bkpr_cfg	*p;
+
+	if ((p = calloc(1,sizeof(bkpr_cfg))) == NULL)
+		return (NULL);
+
+	return (p);
+}
+
+void
+cfg_free(void)
+{
+	if ((ctx == NULL) || (ctx->cfg == NULL))
+		return;
+
+	free(ctx->cfg->prefix);
+	free(ctx->cfg->zprefix);
+
+	free(ctx->cfg);
 }
 
 
@@ -121,4 +140,3 @@ str_isnumber(char *str)
 
 	return 1;
 }
-

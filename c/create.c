@@ -103,6 +103,11 @@ create(int argc, char **argv)
 
 	guest_dump(g);
 
+	if (db_guest_insert(g)) {
+		guest_free(g);
+		return (BKPR_BAD);
+	}
+
 	guest_free(g);
 	return (BKPR_GOOD);
 }

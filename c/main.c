@@ -10,24 +10,26 @@ main(int argc, char *argv[])
 	int	r, ch;
 	char	*operation;
 
-	if ((ctx = ctx_alloc()) == NULL) {
-		errprint();
-		exit(ENOMEM);
-	}
+	if ((ctx = ctx_alloc()) == NULL)
+		err(ENOMEM,"cannot allocate context");
 
 	ctx->verbosity = BKPR_VERB_STD;
 #ifdef DB_SQLITE
 	ctx->dbtype = BKPR_DBTYPE_SQLITE;
 #endif
 
-	if ((ctx->err = err_alloc()) == NULL) {
-		errprint();
-		exit(ENOMEM);
-	}
+	if ((ctx->err = err_alloc()) == NULL)
+		err(ENOMEM,"cannot allocate error structure");
+
+	ctx->cfgfile = strdup(BKPR_CFGFILE_DEFAULT);
 
 	opterr = 0;
-	while ((ch = getopt(argc,argv,"qdN")) != -1) {
+	while ((ch = getopt(argc,argv,"f:qdN")) != -1) {
 		switch(ch) {
+			case 'f':
+				free(ctx->cfgfile);
+				ctx->cfgfile = strdup(optarg);
+				break;
 			case 'q':
 				ctx->verbosity = BKPR_VERB_QUIET;
 				break;
@@ -50,8 +52,12 @@ main(int argc, char *argv[])
 		exit(EINVAL);
 	}
 
-	if ((operation = strdup(argv[0])) == NULL)
-		err(ENOMEM,"out of memory");
+	if (cfg_load()) {
+		errprint();
+		exit(ctx->err->no);
+	}
+
+	operation = strdup(argv[0]);
 
 	if (OPCMP("help")) {
 		free(operation);

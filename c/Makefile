@@ -3,6 +3,8 @@ MAN	=
 SRCS	= main.c\
 	  util.c\
 	  err.c\
+	  out.c\
+	  cfg.c\
 	  guest.c\
 	  disk.c\
 	  nic.c\

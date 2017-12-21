@@ -12,6 +12,12 @@ guest_alloc(void)
 		return (NULL);
 	}
 
+	if ((g->grub = calloc(1,sizeof(grub_def))) == NULL) {
+		free(g);
+		errset(ENOMEM,"out of memory");
+		return (NULL);
+	}
+
 	return (g);
 }
 
@@ -26,6 +32,9 @@ guest_free(guest *g)
 		disk_free_all(g->disk);
 	if (g->nic != NULL)
 		nic_free_all(g->nic);
+	if (g->grub != NULL)
+		free(g->grub);
+
 	free(g);
 }
 
@@ -44,7 +53,7 @@ guest_dump(guest *g)
 	nic = g->nic;
 
 	printf("guest {\n");
-	printf("\t%-8s %lu\n","vmid",g->vmid);
+	printf("\t%-8s %lu\n","guest_id",g->guest_id);
 	printf("\t%-8s %s\n","name",g->name);
 	printf("\t%-8s %d\n","cpu",g->cpu);
 	printf("\t%-8s %lu\n","mem",g->mem);

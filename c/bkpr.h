@@ -1,6 +1,8 @@
 #ifndef BKPR_H
 #define BKPR_H
 
+#define _WITH_GETLINE
+
 #include <ctype.h>
 #include <err.h>
 #include <errno.h>
@@ -20,6 +22,8 @@
 #include "bkpr_types.h"
 #include "bkpr_db.h"
 
+#define BKPR_CFGFILE_DEFAULT "/usr/local/etc/bkpr.cfg"
+
 void		 usage(void);
 
 int		 create(int, char **);
@@ -27,6 +31,10 @@ int		 test(void);	/* beware */
 
 bkpr_context	*ctx_alloc(void);
 bkpr_err	*err_alloc(void);
+bkpr_cfg	*cfg_alloc(void);
+void		 cfg_free(void);
+
+int		 cfg_load(void);
 
 int		 errset(int, char *, ...);
 int		 errget(void);
@@ -36,6 +44,11 @@ void		 complain(char *, ...);
 
 #define UNIMP(x)	complain("unimplemented: %s",x)
 #define DODBG()		(ctx->verbosity == BKPR_VERB_DEBUG)
+
+void		 out(char *, ...);
+void		 dbg(char *, ...);
+
+#define CMP(x,y)	(strcmp(x,y) == 0)
 
 #define GUEST_DEFAULT_CPU	1
 #define GUEST_DEFAULT_MEM	1024

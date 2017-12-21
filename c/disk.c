@@ -153,8 +153,8 @@ disk_dump(int lvl, guest_disk *d)
 	}
 
 	printf("%sdisk {\n",ind);
-	printf("%s\t%-8s %d\n",ind,"vmid",d->vmid);
-	printf("%s\t%-8s %d\n",ind,"diskid",d->diskid);
+	printf("%s\t%-8s %d\n",ind,"guest_id",d->guest_id);
+	printf("%s\t%-8s %d\n",ind,"disk_id",d->disk_id);
 	printf("%s\t%-8s %s\n",ind,"type",disk_type_str(d->type));
 	printf("%s\t%-8s %s\n",ind,"path",d->path);
 	if (d->size)

@@ -178,8 +178,8 @@ nic_dump(int lvl, guest_nic *n)
 	}
 
 	printf("%snic {\n",ind);
-	printf("%s\t%-8s %d\n",ind,"nicid",n->nicid);
-	printf("%s\t%-8s %d\n",ind,"vmid",n->vmid);
+	printf("%s\t%-8s %d\n",ind,"nic_id",n->nic_id);
+	printf("%s\t%-8s %d\n",ind,"guest_id",n->guest_id);
 	printf("%s\t%-8s %d\n",ind,"tap",n->tap);
 	printf("%s\t%-8s %d\n",ind,"bridge",n->bridge);
 	//printf("%s\t%-8s %p\n",ind,"addr",n);

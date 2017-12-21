@@ -15,9 +15,6 @@
 
 typedef struct bkpr_db {
 	DBCONN		*conn;
-#ifdef DB_SQLITE
-	char		*path;
-#endif /* DB_SQLITE */
 } bkpr_db;
 
 bkpr_db_type	db_type(char *);
@@ -26,5 +23,7 @@ char		*db_type_str(bkpr_db_type);
 int		db_init(void);
 int		db_connect(void);
 void		db_disconnect(void);
+
+int		db_guest_insert(guest *);
 
 #endif /* BKPR_DB_H */

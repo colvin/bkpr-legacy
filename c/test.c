@@ -12,7 +12,7 @@ test(void)
 	if ((g = calloc(1,sizeof(guest))) == NULL)
 		return (ENOMEM);
 
-	g->vmid = 1;
+	g->guest_id = 1;
 	snprintf(g->name,sizeof(g->name),"%s","foomatic");
 	g->cpu = 4;
 	g->mem = 6144;
@@ -21,15 +21,15 @@ test(void)
 	snprintf(g->descr,sizeof(g->descr),"%s","A sample FreeBSD guest");
 
 	n1 = calloc(1,sizeof(guest_nic));
-	n1->nicid = 1;
-	n1->vmid = 1;
+	n1->nic_id = 1;
+	n1->guest_id = 1;
 	n1->bridge = 0;
 	n1->tap = 0;
 	g->nic = n1;
 
 	d1 = disk_alloc();
-	d1->diskid = 1;
-	d1->vmid = 1;
+	d1->disk_id = 1;
+	d1->guest_id = 1;
 	d1->type = DISK_TYPE_ZVOL;
 	snprintf(d1->path,sizeof(d1->path),"%s","tank/vol/foo");
 	d1->root = 1;
@@ -37,8 +37,8 @@ test(void)
 	g->disk = d1;
 
 	d2 = disk_alloc();
-	d2->diskid = 2;
-	d2->vmid = 1;
+	d2->disk_id = 2;
+	d2->guest_id = 1;
 	d2->type = DISK_TYPE_FILE;
 	snprintf(d2->path,sizeof(d2->path),"%s","/bkpr/foomatic/disk2.img");
 	d2->root = 0;
